@@ -1,0 +1,1647 @@
+<!DOCTYPE html>
+<html lang="en">
+<!-- final version with ui and otp -->
+<!-- done -->
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Account Management</title>
+</head>
+<style>
+	/* General Styling */
+	body {
+		font-family: Arial, sans-serif;
+		background-color: #f0f8ff;
+		color: #333333;
+		justify-content: center;
+		align-items: center;
+		min-height: 100vh;
+		text-align: center;
+
+	}
+	#profileHistory {
+    margin: 20px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+th, td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+th {
+    background-color:#b6f3fd;
+    color: #0066cc;
+}
+
+tr:hover {
+    background-color: #b6f3fd;
+}
+
+
+
+	h1,
+	h2,
+	h3 {
+		color: #0066cc;
+	}
+
+	/* Button Styling */
+	button {
+		background-color: #0066cc;
+		color: white;
+		padding: 10px 20px;
+		border: none;
+		border-radius: 10px;
+		cursor: pointer;
+		margin: 10px 0;
+
+	}
+
+	button:hover {
+		background-color: #004d99;
+	}
+
+	/* Form and Input Styling */
+	form {
+		background-color: #e6f2ff;
+		padding: 10px 0px;
+		border-radius: 24px;
+		box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+		margin-bottom: 20px;
+		width: 50%;
+		text-align: center;
+	}
+
+	input[type="text"],
+	input[type="email"],
+	input[type="number"] {
+		width: 50%;
+		padding: 10px;
+		margin: 5px 0;
+		border: 1px solid #ccc;
+		border-radius: 5px;
+	}
+
+	/* Container for the profile and modification sections */
+	#mainprofile {
+		display: flex;
+		justify-content: space-between;
+
+		margin-top: 20px;
+
+	}
+
+	/* Profile Information and Linked Accounts on the left */
+	#profileSectionLeft {
+		flex: 1;
+		margin-right: 20px;
+
+	}
+
+	/* Modify Profile on the right */
+	#profileSectionRight {
+		flex: 1;
+		margin-left: 20px;
+		display: flex;
+		flex-direction: column;
+		/* Ensure items stack vertically */
+		justify-content: center;
+		/* Horizontally center */
+		align-items: center;
+		/* Vertically center */
+	}
+
+	/* Grant Child Access Section at the bottom */
+	#grantChildAccessSection {
+		flex: 1;
+		width: 100%;
+		text-align: center;
+		margin-top: 40px;
+	}
+
+	/* Aligning the archive and delete buttons in the middle */
+	#archiveBtn,
+	#deleteAccountBtn,
+	#reactivateButton {
+		display: block;
+		margin: 10px auto;
+
+	}
+
+
+	/* Styling the result messages */
+	#resultMessage,
+	#result {
+		color: #0066cc;
+		font-weight: bold;
+		margin-top: 10px;
+	}
+
+	/* Centering text and layout */
+	h1,
+	h2,
+	h3 {
+		text-align: center;
+	}
+
+	#linkedAccountsSection,
+	#modifyForm,
+	#accessForm,
+	#archiveInfo {
+		text-align: center;
+	}
+
+	/* Flex layout for the logs */
+	#logs {
+		display: flex;
+		justify-content: space-between;
+		margin-top: 20px;
+	}
+
+	ul {
+		list-style: none;
+		padding: 0;
+	}
+
+	#connectButton {
+	margin-left: 43.5%;
+	display: flex;
+    justify-content: center; /* Horizontally center the text */
+    align-items: center; /* Vertically center the text */
+    height: 50px; /* Set a fixed height if needed */
+    padding: 10px 15px;
+    border-radius: 24px;
+    background-color: #0066cc;
+    color: white;
+    border: none;
+    cursor: pointer;
+	text-align: center;
+	}
+
+	#registrationSection {
+		text-align: center;
+		margin-left: 33%;
+	}
+
+	#registrationSection h2 {
+		text-align: left;
+		margin-left: 15%;
+	}
+
+	#registrationSection form {
+		text-align: justify;
+		padding: 2%;
+	}
+
+	#bottomsection {
+		display: flex;
+
+	}
+
+	#out {
+		flex: 1;
+		margin-left: 20px;
+		display: flex;
+		flex-direction: column;
+		/* Ensure items stack vertically */
+		justify-content: center;
+		/* Horizontally center */
+		align-items: center;
+		/* Vertically center */
+	}
+	#navbar a{
+		text-decoration: none;
+		width: 100%;
+		padding: 0px 40px;
+		
+		
+	}
+	#navbar a:hover{
+		background-color: rgba(0, 0, 0, 0.086);
+		
+		
+		
+	}
+
+	#navbar{
+		background-color: #b6f3fd;
+	}
+	h1{
+		margin: 0;
+		padding: 21px;
+		background-color: #b6f3fd;
+	}
+	#accountArea{
+		background-color: #b6f3fd;
+	}
+	#navAddress{
+		position:absolute;
+    right: 20px; /* Distance from the right edge of the screen */
+    top: 30px; /* Adjust the top position if necessary */
+    background-color: #b6f3fd; /* Consistent background color */
+    padding: 10px;
+    border-radius: 20px;
+    color: #004d99;
+    font-weight: bold;
+	width: 5%;
+	}
+	#connecLogo{
+		position:absolute;
+    right: 117px; /* Distance from the right edge of the screen */
+    top: 34px; /* Adjust the top position if necessary */
+	}
+	
+
+</style>
+	
+<body>
+	<h1>Profile</h1>
+
+	<!-- Button to connect to MetaMask -->
+	<button id="connectButton"><img src="metalogo.png" alt="logo" id="connectLogo" height="40px" width="40px">Connect to
+		MetaMask</button>
+	<div id="accountArea" style="display: none;"></div>
+
+	<!-- Registration Section -->
+	<div id="registrationSection" style="display:none;">
+		<h2>Register Account</h2>
+		<form id="registerForm">
+			<label>Name: </label><br><input type="text" id="regName" required><br>
+			<label>Age: </label><br><input type="number" id="regAge" required><br>
+			<label>Email: </label><br><input type="email" id="regEmail" required>
+			<button onclick="sendOTP()">Send OTP</button><br>
+			<label for="otp">Enter the OTP you received:</label><br>
+			<input type="text" id="otp" required>  
+			<button type="button" onclick="verifyOTP(event)">Verify OTP</button>
+			<p id="result"></p>
+
+			<label>Register as Parent: </label><input type="checkbox" id="isParent"><br><br>
+			<label>Parent Address (if Child): </label><br><input type="text" id="parentAddress" placeholder="0x..."><br>
+			<button type="submit" id="registerBtn" style="display: none;">Register</button>
+		</form>
+	</div>
+
+	<!-- Profile Section -->
+	<div id="profileSection" style="display: none;">
+		<div id="navbar">
+			<a href="http://127.0.0.1:5000/Transaction">Transaction</a>
+			<a href="http://127.0.0.1:5000/Transaction">Withdraw and Deposit</a>
+			<a href="http://127.0.0.1:5000/Transaction">Interest</a>
+			<a href="http://127.0.0.1:5000/Transaction">Reward</a>
+			<img src="metalogo.png" alt="logo" id="connecLogo" height="40px" width="40px">
+			<input type="text" name="address" id="navAddress" disabled>
+		</div>
+		<div id="mainprofile">
+			<div id="profileSectionLeft">
+				<h2>Profile Information</h2>
+				<p id="profile"></p>
+
+				<!-- Parent/Child Accounts Section -->
+				<div id="linkedAccountsSection" style="display: none;">
+					<br>
+					<h2>Linked Accounts</h2>
+					<div id="linkedAccountsInfo" style="margin-left: 20px;"></div>
+				</div>
+			</div>
+			<div id="profileSectionRight">
+				<h2>Modify Profile</h2>
+				<br><br>
+				<form id="modifyForm">
+					<label>Name: </label><input disabled type="text" id="modName" required><br>
+					<label>Email: </label><input disabled type="email" id="modEmail" required><br>
+					<label>Age &nbsp;&nbsp;: </label><input type="number" disabled id="modAge" required><br>
+					<button type="submit" id="modifyProfileBtn">Modify Profile</button>
+				</form>
+				<h2>Grant Child Modification Access</h2>
+
+				<form id="accessForm" style="display:none;">
+					<label for="childAddress">Child Address:</label>
+					<input type="text" id="childAddress"><br><br>
+
+					<button type="button" onclick="grantAccess()">Grant Access</button>
+					<button type="button" onclick="revokeAccess()">Revoke Access</button>
+				</form>
+
+				<p id="parentMessage" style="display:none;">You are logged in as a parent. You can grant or revoke
+					modification access for your children.</p>
+				<p id="nonParentMessage" style="display:none;">You are not authorized to grant or revoke access.
+					<br><br><br><br><br><br><br><br><br>
+				</p>
+
+			</div>
+		</div>
+		<h2 style="text-align: left;padding-left: 25px;">Profile History</h2>
+		<ul id="profileHistory"></ul>
+
+		<button id="fetchEventsButton">Refresh History</button>
+
+		
+		<br><br>
+		<div id="bottomsection">
+
+			<form id="migrationForm">
+				<h2>Account Migration</h2>
+				<label for="newAddress">New Address:</label>
+				<input type="text" id="newAddress" placeholder="Enter new address..." required>
+				<button type="submit">Migrate Account</button>
+			</form>
+			<p id="resultMessage"></p>
+			<div id="out">
+				<button id="archiveBtn" onclick="archiveAccount()">Archive Account</button>
+				<button onclick="window.location.reload()">Disconnect Account</button>
+			</div>
+		</div>
+
+
+
+	</div>
+	<div id="archiveInfo" style="display: none;">
+		<div id="timeToDeletion"></div>
+		<button id="reactivateButton" style="display: none;" onclick="reactivateAccount()">Reactivate
+			Account</button>
+			<button id="deleteAccountBtn">Delete Account</button>
+		<button onclick="window.location.reload()">Logout</button>
+	</div>
+
+	<script src="https://cdn.jsdelivr.net/npm/web3/dist/web3.min.js"></script>
+	<script>
+		const web3 = new Web3(Web3.givenProvider || "http://localhost:7545");
+
+		const contractAddress = "0x3652FD3932c3cFEf42DD9398C8fD875A8f2E515c";  // Replace with deployed contract address
+		const contractABI = [
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "user",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "timestamp",
+				"type": "uint256"
+			}
+		],
+		"name": "AccountArchived",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "user",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "timestamp",
+				"type": "uint256"
+			}
+		],
+		"name": "AccountReactivated",
+		"type": "event"
+	},
+	{
+		"inputs": [],
+		"name": "archiveAccount",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "checkArchiveStatus",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "deleteAccount",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "_child",
+				"type": "address"
+			}
+		],
+		"name": "grantModificationAccess",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "_account",
+				"type": "address"
+			}
+		],
+		"name": "login",
+		"outputs": [
+			{
+				"internalType": "bool",
+				"name": "",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "_newAddress",
+				"type": "address"
+			}
+		],
+		"name": "migrateAccount",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "parent",
+				"type": "address"
+			},
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "child",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "timestamp",
+				"type": "uint256"
+			}
+		],
+		"name": "ModificationAccessGranted",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "parent",
+				"type": "address"
+			},
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "child",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "timestamp",
+				"type": "uint256"
+			}
+		],
+		"name": "ModificationAccessRevoked",
+		"type": "event"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "string",
+				"name": "_name",
+				"type": "string"
+			},
+			{
+				"internalType": "string",
+				"name": "_email",
+				"type": "string"
+			},
+			{
+				"internalType": "uint256",
+				"name": "_age",
+				"type": "uint256"
+			}
+		],
+		"name": "modifyProfile",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "user",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"internalType": "string",
+				"name": "name",
+				"type": "string"
+			},
+			{
+				"indexed": false,
+				"internalType": "string",
+				"name": "email",
+				"type": "string"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "age",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "timestamp",
+				"type": "uint256"
+			}
+		],
+		"name": "ProfileModified",
+		"type": "event"
+	},
+	{
+		"inputs": [],
+		"name": "reactivateAccount",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "string",
+				"name": "_name",
+				"type": "string"
+			},
+			{
+				"internalType": "string",
+				"name": "_email",
+				"type": "string"
+			},
+			{
+				"internalType": "uint256",
+				"name": "_age",
+				"type": "uint256"
+			},
+			{
+				"internalType": "address",
+				"name": "_parent",
+				"type": "address"
+			},
+			{
+				"internalType": "enum Account.AccountType",
+				"name": "_accountType",
+				"type": "uint8"
+			}
+		],
+		"name": "register",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "_child",
+				"type": "address"
+			}
+		],
+		"name": "revokeModificationAccess",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "user",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "timestamp",
+				"type": "uint256"
+			}
+		],
+		"name": "UserLoggedIn",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "user",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"internalType": "string",
+				"name": "name",
+				"type": "string"
+			},
+			{
+				"indexed": false,
+				"internalType": "string",
+				"name": "email",
+				"type": "string"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "age",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "timestamp",
+				"type": "uint256"
+			}
+		],
+		"name": "UserRegistered",
+		"type": "event"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"name": "children",
+		"outputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "_account",
+				"type": "address"
+			}
+		],
+		"name": "getArchiveTimestamp",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "_parent",
+				"type": "address"
+			}
+		],
+		"name": "getChildren",
+		"outputs": [
+			{
+				"internalType": "address[]",
+				"name": "",
+				"type": "address[]"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "_child",
+				"type": "address"
+			}
+		],
+		"name": "getParent",
+		"outputs": [
+			{
+				"components": [
+					{
+						"internalType": "address",
+						"name": "account",
+						"type": "address"
+					},
+					{
+						"internalType": "string",
+						"name": "name",
+						"type": "string"
+					},
+					{
+						"internalType": "string",
+						"name": "email",
+						"type": "string"
+					},
+					{
+						"internalType": "uint256",
+						"name": "age",
+						"type": "uint256"
+					},
+					{
+						"internalType": "enum Account.AccountType",
+						"name": "accountType",
+						"type": "uint8"
+					},
+					{
+						"internalType": "address",
+						"name": "parent",
+						"type": "address"
+					},
+					{
+						"internalType": "enum Account.AccountStatus",
+						"name": "status",
+						"type": "uint8"
+					},
+					{
+						"internalType": "uint256",
+						"name": "archiveTimestamp",
+						"type": "uint256"
+					}
+				],
+				"internalType": "struct Account.User",
+				"name": "",
+				"type": "tuple"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "getProfile",
+		"outputs": [
+			{
+				"components": [
+					{
+						"internalType": "address",
+						"name": "account",
+						"type": "address"
+					},
+					{
+						"internalType": "string",
+						"name": "name",
+						"type": "string"
+					},
+					{
+						"internalType": "string",
+						"name": "email",
+						"type": "string"
+					},
+					{
+						"internalType": "uint256",
+						"name": "age",
+						"type": "uint256"
+					},
+					{
+						"internalType": "enum Account.AccountType",
+						"name": "accountType",
+						"type": "uint8"
+					},
+					{
+						"internalType": "address",
+						"name": "parent",
+						"type": "address"
+					},
+					{
+						"internalType": "enum Account.AccountStatus",
+						"name": "status",
+						"type": "uint8"
+					},
+					{
+						"internalType": "uint256",
+						"name": "archiveTimestamp",
+						"type": "uint256"
+					}
+				],
+				"internalType": "struct Account.User",
+				"name": "",
+				"type": "tuple"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "_user",
+				"type": "address"
+			}
+		],
+		"name": "getTimeUntilDeletion",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "_user",
+				"type": "address"
+			}
+		],
+		"name": "getUserStatus",
+		"outputs": [
+			{
+				"internalType": "string",
+				"name": "",
+				"type": "string"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"name": "modificationAccessGranted",
+		"outputs": [
+			{
+				"internalType": "bool",
+				"name": "",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"name": "users",
+		"outputs": [
+			{
+				"internalType": "address",
+				"name": "account",
+				"type": "address"
+			},
+			{
+				"internalType": "string",
+				"name": "name",
+				"type": "string"
+			},
+			{
+				"internalType": "string",
+				"name": "email",
+				"type": "string"
+			},
+			{
+				"internalType": "uint256",
+				"name": "age",
+				"type": "uint256"
+			},
+			{
+				"internalType": "enum Account.AccountType",
+				"name": "accountType",
+				"type": "uint8"
+			},
+			{
+				"internalType": "address",
+				"name": "parent",
+				"type": "address"
+			},
+			{
+				"internalType": "enum Account.AccountStatus",
+				"name": "status",
+				"type": "uint8"
+			},
+			{
+				"internalType": "uint256",
+				"name": "archiveTimestamp",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	}
+];
+
+		const accountContract = new web3.eth.Contract(contractABI, contractAddress);
+
+		let account;
+
+		// Function to connect to MetaMask and check account status
+		const accessToMetamask = async () => {
+			if (window.ethereum !== "undefined") {
+				const accounts = await ethereum.request({ method: "eth_requestAccounts" });
+				account = accounts[0];
+				document.getElementById("accountArea").innerHTML = `Connected Account: ${account}`;
+				document.getElementById('navAddress').value =account;
+				// Check if the account is registered
+				const isRegistered = await accountContract.methods.login(account).call();
+				if (isRegistered) {
+					document.getElementById('connectButton').style.display = 'none';
+					checkIfParent();
+					checkModificationAccess();
+
+					// Fetch and display profile if registered
+					const profile = await accountContract.methods.getProfile().call({ from: account });
+					displayProfile(profile);
+					document.getElementById("registrationSection").style.display = "none";
+					document.getElementById("mainprofile").style.display = "flex";
+					checkUserStatus();
+					const userStatus = await accountContract.methods.getUserStatus(account).call();
+
+
+				} else {
+					// Show registration form if not registered
+					document.getElementById("registrationSection").style.display = "block";
+					document.getElementById("profileSection").style.display = "none";
+				}
+			} else {
+				alert("MetaMask is not installed");
+			}
+		};
+
+		// Function to display profile details and account balance
+		const displayProfile = async (profile) => {
+			const profileArea = document.getElementById("profile");
+
+			// Fetch account balance in Ether
+			const balance = await web3.eth.getBalance(account);
+			const balanceInEth = web3.utils.fromWei(balance, 'ether');
+			const balanceFormatted = parseFloat(balanceInEth).toFixed(4);
+			let type;
+			if (profile.accountType == '0') {
+				type = "PARENT";
+			} else {
+				type = "CHILD";
+			}
+			// Display profile details and account balance
+			// Display profile details and account balance
+			profileArea.innerHTML = `
+    <table>
+        <thead>
+            <tr>
+                <th>Item</th>
+                <th>Description</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Name:</td>
+                <td>${profile.name}</td>
+            </tr>
+            <tr>
+                <td>Email:</td>
+                <td>${profile.email}</td>
+            </tr>
+            <tr>
+                <td>Age:</td>
+                <td>${profile.age}</td>
+            </tr>
+            <tr>
+                <td>Ether Balance:</td>
+                <td>${balanceFormatted} ETH</td>
+            </tr>
+            <tr>
+                <td>Account Type:</td>
+                <td>${type}</td>
+            </tr>
+        </tbody>
+    </table>
+`;
+profileArea.style.textAlign = 'left';
+profileArea.style.marginLeft = '20%';
+profileArea.style.fontSize = "16px";
+
+
+			fetchEvents();
+			// Show linked accounts information
+			const linkedAccountsInfo = document.getElementById("linkedAccountsInfo");
+
+			if (profile.accountType == '0') { // 0 corresponds to Parent in the enum
+				// Fetch and display child accounts
+				const childAccounts = await accountContract.methods.getChildren(account).call();
+				linkedAccountsInfo.innerHTML = '<h3>Children Accounts:</h3><table>' +
+    '<thead>' +
+    '<tr>' +
+    '<th>Child Address</th>' +
+    '<th>Name</th>' +
+    '<th>Email</th>' +
+    '<th>Age</th>' +
+    '</tr>' +
+    '</thead>' +
+    '<tbody>';
+
+for (const child of childAccounts) {
+    const childProfile = await accountContract.methods.getProfile().call({ from: child });
+    linkedAccountsInfo.innerHTML += `
+        <tr>
+            <td>${child}</td>
+            <td>${childProfile.name}</td>
+            <td>${childProfile.email}</td>
+            <td>${childProfile.age}</td>
+        </tr>`;
+}
+
+linkedAccountsInfo.innerHTML += '</tbody></table>';
+				// Enable inputs and buttons if access is granted
+				document.getElementById('modName').disabled = false;
+				document.getElementById('modEmail').disabled = false;
+				document.getElementById('modAge').disabled = false;
+				document.getElementById('modifyProfileBtn').disabled = false;
+			} else { // Child account
+				// Fetch and display parent account
+				const parentProfile = await accountContract.methods.getParent(account).call();
+				linkedAccountsInfo.innerHTML = `<h3>Parent Account:</h3>${parentProfile.account}: ${parentProfile.name}, ${parentProfile.email}, ${parentProfile.age} years old`;
+
+
+			}
+
+			document.getElementById("linkedAccountsSection").style.display = "block";
+		};
+
+		// Register account
+		document.getElementById("registerForm").onsubmit = async function (event) {
+			event.preventDefault();
+			const regName = document.getElementById("regName").value;
+			const regEmail = document.getElementById("regEmail").value;
+			const regAge = document.getElementById("regAge").value;
+			const isParent = document.getElementById("isParent").checked;
+			const parentAddress = document.getElementById("parentAddress").value;
+			if(isParent){
+				document.getElementById('parentAddress').disabled=true;
+			}else{
+				document.getElementById('parentAddress').disabled=false;
+			}
+			const parentAccount = isParent ? "0x0000000000000000000000000000000000000000" : parentAddress;
+			const accountType = isParent ? 0 : 1;
+
+			try {
+
+				await accountContract.methods.register(regName, regEmail, regAge, parentAccount, accountType, parentAddress).send({ from: account, gas: 300000 });
+				alert("Registration successful!");
+				window.location.reload();
+				// Refresh profile information
+				accessToMetamask();
+			} catch (error) {
+
+				console.error(error);
+				alert("Please Try Again or check console.");
+			}
+		};
+
+		// Modify profile
+		document.getElementById("modifyForm").onsubmit = async function (event) {
+			try {
+				event.preventDefault();
+				const modName = document.getElementById("modName").value;
+				const modEmail = document.getElementById("modEmail").value;
+				const modAge = document.getElementById("modAge").value;
+				const userProfile = await accountContract.methods.getProfile().call({ from: account });
+			const parentAddress = userProfile.parent;
+			const parentProfile = await accountContract.methods.getProfile().call({ from: parentAddress });
+			
+			if(userProfile.accountType=="1" && modAge>=18){
+				const check = await childSendOTP(parentProfile.email);
+				
+				if(check==null){
+					return;
+				}else{
+				
+				await accountContract.methods.modifyProfile(modName, modEmail, modAge).send({ from: account });
+				}
+			}else{
+				await accountContract.methods.modifyProfile(modName, modEmail, modAge).send({ from: account });
+
+			}
+
+				// Refresh profile information
+				const updatedProfile = await accountContract.methods.getProfile().call({ from: account });
+				displayProfile(updatedProfile);
+			} catch (error) {
+				console.error(error);
+
+
+				alert("Please Try Again or check console.");
+			}
+		};
+
+		// Delete account
+		document.getElementById("deleteAccountBtn").onclick = async function () {
+			await accountContract.methods.deleteAccount().send({ from: account });
+			alert("Account deleted!");
+			document.getElementById("profileSection").style.display = "none";  // Hide the section after deletion
+			window.location.reload();
+		};
+
+		// Event listener for connect button
+
+
+
+		document.getElementById("migrationForm").onsubmit = async function (event) {
+			try {
+				event.preventDefault();
+				const accounts = await ethereum.request({ method: 'eth_requestAccounts' });
+				const currentAccount = accounts[0];
+				const newAddress = document.getElementById('newAddress').value;
+				confirm("Confirm Migrate To: " + newAddress + " ?");
+				// Estimate gas for the migration function
+				const gasEstimate = await accountContract.methods.migrateAccount(newAddress).estimateGas({ from: currentAccount });
+
+				// Send the migration transaction
+				await accountContract.methods.migrateAccount(newAddress).send({
+					from: currentAccount,
+					gas: gasEstimate
+				});
+
+				console.log('Account migration successful');
+				alert('Account migration successful!');
+				window.location.reload();
+
+				// Optional: Refresh profile information or redirect as needed
+			} catch (error) {
+				console.error('Error migrating account:', error);
+				alert('Failed to migrate account: ' + error.message);
+			}
+		};
+		document.getElementById("connectButton").onclick = accessToMetamask;
+
+		const fetchEvents = async () => {
+    try {
+        const profileHistoryElement = document.getElementById('profileHistory');
+        profileHistoryElement.innerHTML = ''; // Clear any existing history
+
+        let eventsList = [];
+
+        // Fetch ProfileModified events
+        const profileModifiedEvents = await accountContract.getPastEvents('ProfileModified', {
+            filter: { user: account },
+            fromBlock: 0,
+            toBlock: 'latest'
+        });
+        profileModifiedEvents.forEach(event => {
+            const { name, email, age, timestamp } = event.returnValues;
+            eventsList.push({
+                eventType: 'Profile Modified',
+                details: `${name} | ${email} | ${age}`,
+                timestamp: parseInt(timestamp),
+                transactionHash: event.transactionHash
+            });
+        });
+
+        // Fetch AccountArchived events
+        const accountArchivedEvents = await accountContract.getPastEvents('AccountArchived', {
+            filter: { user: account },
+            fromBlock: 0,
+            toBlock: 'latest'
+        });
+        accountArchivedEvents.forEach(event => {
+            const { timestamp } = event.returnValues;
+            eventsList.push({
+                eventType: 'Account Archived',
+                details: '',
+                timestamp: parseInt(timestamp),
+                transactionHash: event.transactionHash
+            });
+        });
+
+        // Fetch AccountReactivated events
+        const accountReactivatedEvents = await accountContract.getPastEvents('AccountReactivated', {
+            filter: { user: account },
+            fromBlock: 0,
+            toBlock: 'latest'
+        });
+        accountReactivatedEvents.forEach(event => {
+            const { timestamp } = event.returnValues;
+            eventsList.push({
+                eventType: 'Account Reactivated',
+                details: '',
+                timestamp: parseInt(timestamp),
+                transactionHash: event.transactionHash
+            });
+        });
+
+        // Fetch UserRegistered events
+        const userRegisteredEvents = await accountContract.getPastEvents('UserRegistered', {
+            filter: { user: account },
+            fromBlock: 0,
+            toBlock: 'latest'
+        });
+        userRegisteredEvents.forEach(event => {
+            const { name, email, age, timestamp } = event.returnValues;
+            eventsList.push({
+                eventType: 'User Registered',
+                details: `${name} | ${email} | ${age}`,
+                timestamp: parseInt(timestamp),
+                transactionHash: event.transactionHash
+            });
+        });
+
+        // Fetch ModificationAccessGranted events
+        const modificationAccessGrantedEvents = await accountContract.getPastEvents('ModificationAccessGranted', {
+            filter: { parent: account },
+            fromBlock: 0,
+            toBlock: 'latest'
+        });
+        modificationAccessGrantedEvents.forEach(event => {
+            const { parent, child, timestamp } = event.returnValues;
+            eventsList.push({
+                eventType: 'Access Granted',
+                details: `Parent ${parent} granted access to Child ${child}`,
+                timestamp: parseInt(timestamp),
+                transactionHash: event.transactionHash
+            });
+        });
+
+        // Fetch ModificationAccessRevoked events
+        const modificationAccessRevokedEvents = await accountContract.getPastEvents('ModificationAccessRevoked', {
+            filter: { parent: account },
+            fromBlock: 0,
+            toBlock: 'latest'
+        });
+        modificationAccessRevokedEvents.forEach(event => {
+            const { parent, child, timestamp } = event.returnValues;
+            eventsList.push({
+                eventType: 'Access Revoked',
+                details: `Parent ${parent} revoked access from Child ${child}`,
+                timestamp: parseInt(timestamp),
+                transactionHash: event.transactionHash
+            });
+        });
+
+        // Sort the events based on timestamp (most recent first)
+        eventsList.sort((a, b) => b.timestamp - a.timestamp);
+
+        // Create a table for the events
+        let tableHTML = `<table>
+            <thead>
+                <tr>
+                    <th>Event Type</th>
+                    <th>Details</th>
+                    <th>Date</th>
+                    <th>Transaction Hash</th>
+                </tr>
+            </thead>
+            <tbody>`;
+
+        // Display the sorted events in the table
+        eventsList.forEach(event => {
+            const date = new Date(event.timestamp * 1000).toLocaleString();
+            tableHTML += `<tr>
+                <td>${event.eventType}</td>
+                <td>${event.details}</td>
+                <td>${date}</td>
+                <td>${event.transactionHash}</td>
+            </tr>`;
+        });
+
+        tableHTML += `</tbody></table>`;
+        profileHistoryElement.innerHTML = tableHTML;
+
+    } catch (error) {
+        console.error("Error fetching events:", error);
+    }
+};
+
+
+		// Fetch events when a button is clicked
+		document.getElementById("fetchEventsButton").addEventListener("click", fetchEvents);
+
+
+		async function archiveAccount() {
+			try {
+				await accountContract.methods.archiveAccount().send({ from: account, gas: 300000 });
+				alert("Account archived successfully.");
+				location.reload();
+			} catch (error) {
+				console.error(error);
+				alert("Failed to archive account.");
+			}
+		}
+
+		const reactivateAccount = async () => {
+			try {
+				await accountContract.methods.reactivateAccount().send({ from: account });
+				alert("Account reactivated successfully!");
+				checkUserStatus(); // Refresh status after reactivation
+			} catch (error) {
+				console.error("Error reactivating account:", error);
+				alert("Failed to reactivate account.");
+			}
+		};
+
+
+
+		// Call this function when connecting to MetaMask
+		const checkUserStatus = async () => {
+			try {
+				const accounts = await ethereum.request({ method: "eth_requestAccounts" });
+				account = accounts[0];
+				const userStatus = await accountContract.methods.getUserStatus(account).call();
+
+				if (userStatus == "ARCHIVED") {
+					document.getElementById("profileSection").style.display = "none";
+					document.getElementById("archiveInfo").style.display = "block";
+
+					const timeRemaining = await accountContract.methods.getTimeUntilDeletion(account).call();
+
+
+					// Convert the timeRemaining from BigInt to Number
+					const timeRemainingSeconds = Number(timeRemaining);
+
+					// Calculate days, hours, minutes, seconds from timeRemainingSeconds
+					const daysRemaining = Math.floor(timeRemainingSeconds / (24 * 60 * 60));
+					const hoursRemaining = Math.floor((timeRemainingSeconds % (24 * 60 * 60)) / (60 * 60));
+					const minutesRemaining = Math.floor((timeRemainingSeconds % (60 * 60)) / 60);
+					const secondsRemaining = timeRemainingSeconds % 60;
+					if (timeRemaining == 0) {
+						 await accountContract.methods.deleteAccount(currentAccount).send({ from: currentAccount });
+						alert("Account Deleted Permanently.")
+					} else {
+
+						// Display the formatted time remaining
+						timeToDeletion.innerHTML = `Account Archived. Time until account deletion: ${daysRemaining} days, ${hoursRemaining} hours, ${minutesRemaining} minutes, ${secondsRemaining} seconds`;
+					}
+					reactivateButton.style.display = "block";
+				} else {
+					document.getElementById("archiveInfo").style.display = "none";
+					document.getElementById("profileSection").style.display = "block";
+				}
+			} catch (error) {
+				console.error("Error checking user status:", error);
+			}
+		};
+
+		const checkModificationAccess = async () => {
+			const accounts = await ethereum.request({ method: "eth_requestAccounts" });
+
+			const childAddress = accounts[0];
+
+			const hasAccess = await accountContract.methods.modificationAccessGranted(childAddress).call();
+
+			if (hasAccess) {
+				// Enable inputs and buttons if access is granted
+				document.getElementById('modName').disabled = false;
+				document.getElementById('modEmail').disabled = false;
+				document.getElementById('modAge').disabled = false;
+				document.getElementById('modifyProfileBtn').disabled = false;
+			}
+		}
+
+		async function modifyProfile() {
+			const accounts = await ethereum.request({ method: "eth_requestAccounts" });
+			const childAddress = accounts[0];
+			const name = document.getElementById('modName').value;
+			const email = document.getElementById('modEmail').value;
+			const age = document.getElementById('modAge').value;
+			const userProfile = await accountContract.methods.getProfile().call({ from: account });
+			const parentAddress = userProfile.parent;
+			const parentProfile = await accountContract.methods.getProfile().call({ from: parentAddress });
+			
+			if(userProfile.accountType=="1"){
+				childSendOTP(parentProfile.email);
+				childVerifyOTP();
+			}else{
+			await accountContract.methods.modifyProfile(name, email, age).send({ from: childAddress });
+			}
+		}
+
+		// Check access on page load
+
+		const checkIfParent = async () => {
+			const accounts = await ethereum.request({ method: "eth_requestAccounts" });
+			const userAddress = accounts[0];
+
+			const userProfile = await accountContract.methods.getProfile().call({ from: account });
+
+			// Check if the logged-in user is a parent
+			if (userProfile.accountType == "0") {  // Assuming 0 represents PARENT in the enum
+				document.getElementById('accessForm').style.display = "block";
+				document.getElementById('parentMessage').style.display = "block";
+			} else {
+				document.getElementById('nonParentMessage').style.display = "block";
+			}
+		}
+		// Function to check if the logged-in account is a parent and display the buttons accordingly
+		const checkAccountType = async () => {
+			const accounts = await web3.eth.getAccounts();
+			const account = accounts[0];
+			const user = await accountContract.methods.users(account).call();
+
+			if (user.accountType == '0') {  // 0 = PARENT (based on your enum)
+				document.getElementById('grantAccessBtn').style.display = "block";
+				document.getElementById('revokeAccessBtn').style.display = "block";
+			}
+		}
+
+		const grantAccess = async () => {
+			const accounts = await ethereum.request({ method: "eth_requestAccounts" });
+			account = accounts[0];
+			const parentAddress = accounts[0]; // The address of the parent
+			const childAddress = document.getElementById("childAddress").value;
+
+
+			try {
+				await accountContract.methods.grantModificationAccess(childAddress).send({ from: account });
+				alert("Modification access granted!");
+			} catch (error) {
+				console.error(error);
+				alert("Failed to grant modification access.");
+			}
+		};
+
+		async function revokeAccess() {
+			const accounts = await ethereum.request({ method: "eth_requestAccounts" });
+
+			const parentAddress = accounts[0];
+			const childAddress = document.getElementById('childAddress').value;
+
+			try {
+				await accountContract.methods.revokeModificationAccess(childAddress).send({ from: parentAddress });
+				alert("Modification access revoked from child.");
+			} catch (error) {
+				console.error(error);
+				alert("Error: " + error.message);
+			}
+		}
+
+		// Function to send OTP
+
+async function childSendOTP(parentEmail) {
+    const email = parentEmail;
+
+    try {
+        const response = await fetch('/send-otp', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ email: email })
+        });
+
+        if (!response.ok) {
+            throw new Error('Error sending OTP');
+        }
+
+        alert('Change account type detected. OTP has been sent to your parent email: ' + parentEmail);
+
+        // Call childVerifyOTP and wait for the result
+        const check = await childVerifyOTP();
+
+        if (check === null) {
+            return null; // User cancelled the OTP
+        } else {
+            return true; // OTP successfully verified
+        }
+    } catch (error) {
+        alert('Error sending OTP: ' + error.message);
+        return null;
+    }
+}
+
+// Function to verify OTP
+async function childVerifyOTP() {
+    const otp = prompt("Enter OTP :");
+    
+    if (otp === null) {
+        alert("OTP verification cancelled.");
+        return null; // Return null if user cancels the prompt
+    }
+
+    try {
+        const response = await fetch('/verify-otp', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ otp: otp })
+        });
+
+        if (response.status === 200) {
+            alert('OTP verified successfully! You will become adult now!');
+            return true;
+        } else {
+            alert("Incorrect OTP. Please try again.");
+            return await childVerifyOTP(); // Recursively prompt for OTP again if incorrect
+        }
+    } catch (error) {
+        alert('Error verifying OTP: ' + error.message);
+        return null;
+    }
+}
+
+		// Function to send OTP
+		function sendOTP() {
+			const email = document.getElementById('regEmail').value;
+
+			fetch('/send-otp', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify({ email: email })
+			})
+				.then(response => response.text())
+				.then(data => {
+					document.getElementById('result').textContent = 'OTP sent to your email!';
+				})
+				.catch(error => {
+					document.getElementById('result').textContent = 'Error sending OTP: ' + error;
+				});
+		}
+
+		// Function to verify OTP
+		function verifyOTP(event) {
+			const otp = document.getElementById('otp').value;
+			event.preventDefault;
+			fetch('/verify-otp', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify({ otp: otp })
+			})
+				.then(response => {
+					if (response.status === 200) {
+						document.getElementById('result').textContent = 'OTP verified successfully!';
+						document.getElementById('registerBtn').style.display = 'block';
+					} else {
+						document.getElementById('result').textContent = 'Incorrect OTP. Please try again.';
+					}
+				})
+				.catch(error => {
+					document.getElementById('result').textContent = 'Error verifying OTP: ' + error;
+				});
+		}
+		//window.addEventListener('load', accessToMetamask);
+    </script>
+	</script>
+</body>
+
+</html>

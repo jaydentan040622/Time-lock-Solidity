@@ -1,0 +1,13 @@
+const accounts = await ethereum.request({ method: 'eth_requestAccounts' });
+account = accounts[0];
+
+const userProfile = await accountContract.methods.getProfile().call({ from: account });
+if (userProfile.accountType == "0"){    //parent
+
+
+
+}else{
+
+
+
+}

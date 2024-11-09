@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reward System DApp</title>
+    <style>
+        /* Your provided styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            height: 100vh;
+            width: 100vw;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            background-color: #f0f8ff;
+        }
+
+        .hidden-section h3 {
+            font-size: 2.5em;
+        }
+
+        .hidden-section {
+            display: none;
+        }
+
+        .table-container {
+            max-height: 400px;
+            overflow-y: auto;
+            margin: 20px auto;
+            width: 80%;
+        }
+
+        input {
+            width: 50%;
+            height: 30px;
+            padding: 20px 40px;
+            margin-top: 30px;
+            border: 1px solid #ccc;
+            border-radius: 30px;
+            background: #fafcff;
+            box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.2);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        button {
+            font-size: 1em;
+            padding: 15px 30px;
+            background: linear-gradient(to bottom right, #42b7f1, #2385e6);
+            color: white;
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.2);
+            transition: background-color 0.3s ease-in-out;
+            margin: 5px;
+        }
+
+        button:hover {
+            background: linear-gradient(to bottom right, rgb(29, 4, 90), #0d7aa5);
+        }
+
+        #status {
+            margin-top: 20px;
+            font-weight: bold;
+        }
+
+        main {
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        header {
+            background-color: #b6f3fd;
+            color: blue;
+            padding: 20px;
+            text-align: center;
+            font-size: 24px;
+            font-weight: bold;
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/web3@1.7.3/dist/web3.min.js"></script>
+</head>
+<body>
+    <header>
+        Reward System DApp
+    </header>
+
+    <main>
+        <section>
+            <h3>Wallet Information</h3>
+            <p><strong>Connected Address:</strong> <span id="walletAddress">Not Connected</span></p>
+            <p><strong>Reward Points:</strong> <span id="rewardPoints">0</span></p>
+            <p><strong>Status:</strong> <span id="status"></span></p>
+            <button id="connectWallet">Connect Wallet</button>
+        </section>
+
+        <section>
+            <h3>Actions</h3>
+            <button id="dailyLoginButton">Claim Daily Login Reward</button>
+        </section>
+
+        <section>
+            <h3>Available Prizes</h3>
+            <div id="prizeList"></div>
+        </section>
+    </main>
+
+    <script>
+        let web3;
+        let account;
+        let rewardContract;
+
+        const contractAddress = ""; // Replace with the deployed contract address
+        const contractABI = [
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "depositAddress",
+				"type": "address"
+			}
+		],
+		"stateMutability": "nonpayable",
+		"type": "constructor"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "user",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "points",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "amount",
+				"type": "uint256"
+			}
+		],
+		"name": "CashbackReward",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "user",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "points",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "timestamp",
+				"type": "uint256"
+			}
+		],
+		"name": "DailyLoginReward",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "user",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"internalType": "string",
+				"name": "prize",
+				"type": "string"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "cost",
+				"type": "uint256"
+			}
+		],
+		"name": "PrizesPurchased",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "user",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"internalType": "string",
+				"name": "message",
+				"type": "string"
+			}
+		],
+		"name": "RewardReminder",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "user",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "points",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "timestamp",
+				"type": "uint256"
+			}
+		],
+		"name": "WeeklyBalanceReward",
+		"type": "event"
+	},
+	{
+		"inputs": [],
+		"name": "DAILY_REWARD",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "DEPOSIT_WITHDRAW_REWARD",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "ETHER_THRESHOLD",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "MAX_DEPOSIT_REWARD",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "WEEKLY_BALANCE_REWARD",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "dailyLogin",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "depositContract",
+		"outputs": [
+			{
+				"internalType": "contract DepositAndWithdraw",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "amount",
+				"type": "uint256"
+			}
+		],
+		"name": "depositWithdrawCashback",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "getAvailablePrizes",
+		"outputs": [
+			{
+				"internalType": "string[3]",
+				"name": "",
+				"type": "string[3]"
+			}
+		],
+		"stateMutability": "pure",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "string",
+				"name": "prize",
+				"type": "string"
+			},
+			{
+				"internalType": "uint256",
+				"name": "cost",
+				"type": "uint256"
+			}
+		],
+		"name": "purchasePrize",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "rewardReminder",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"name": "rewards",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "points",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "lastDailyLogin",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "lastWeeklyReward",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "lastDepositReward",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	}
+];
+
+        // Function to check if MetaMask is installed and connect the wallet
+        async function connectWallet() {
+            if (window.ethereum) {
+                web3 = new Web3(window.ethereum);
+                await window.ethereum.enable();
+                account = (await web3.eth.getAccounts())[0];
+                document.getElementById('walletAddress').textContent = account;
+                rewardContract = new web3.eth.Contract(contractABI, contractAddress);
+                await getRewardPoints();
+                document.getElementById('status').textContent = "Connected!";
+                loadPrizes();
+            } else {
+                alert("Please install MetaMask to interact with this DApp!");
+            }
+        }
+
+        // Function to get the user's reward points
+        async function getRewardPoints() {
+            try {
+                const points = await rewardContract.methods.rewards(account).call();
+                document.getElementById('rewardPoints').textContent = points.points;
+            } catch (error) {
+                console.error("Error fetching reward points:", error);
+            }
+        }
+
+        // Function to claim the daily login reward
+        async function claimDailyLoginReward() {
+            try {
+                await rewardContract.methods.dailyLogin().send({ from: account });
+                document.getElementById('status').textContent = "Daily login reward claimed!";
+                await getRewardPoints(); // Update the points after claiming
+            } catch (error) {
+                console.error("Error claiming daily reward:", error);
+                document.getElementById('status').textContent = "Failed to claim daily reward.";
+            }
+        }
+
+        // Function to purchase a prize
+        async function purchasePrize(prize, cost) {
+            try {
+                await rewardContract.methods.purchasePrize(prize, cost).send({ from: account });
+                document.getElementById('status').textContent = `Prize "${prize}" purchased for ${cost} points!`;
+                await getRewardPoints(); // Update points after purchasing
+            } catch (error) {
+                console.error("Error purchasing prize:", error);
+                document.getElementById('status').textContent = "Failed to purchase prize.";
+            }
+        }
+
+        // Function to load available prizes as buttons
+        async function loadPrizes() {
+            try {
+                const prizes = await rewardContract.methods.getAvailablePrizes().call();
+                const prizeList = document.getElementById('prizeList');
+                prizeList.innerHTML = ""; // Clear the list
+                
+                prizes.forEach((prize, index) => {
+                    // Parsing the cost of the prize from the prize description
+                    const prizeDetails = prize.split(" - ");
+                    const prizeName = prizeDetails[0];
+                    const prizeCost = parseInt(prizeDetails[1].split(" ")[0]);
+
+                    // Create a button for each prize
+                    const button = document.createElement('button');
+                    button.textContent = `${prizeName} - ${prizeCost} Points`;
+                    button.onclick = () => purchasePrize(prizeName, prizeCost);
+                    
+                    // Append the button to the prize list
+                    prizeList.appendChild(button);
+                });
+            } catch (error) {
+                console.error("Error loading prizes:", error);
+            }
+        }
+
+        // Event listeners for buttons
+        document.getElementById('connectWallet').addEventListener('click', connectWallet);
+        document.getElementById('dailyLoginButton').addEventListener('click', claimDailyLoginReward);
+
+        // Load available prizes when the wallet is connected
+        window.onload = loadPrizes;
+    </script>
+</body>
+</html>

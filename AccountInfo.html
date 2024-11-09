@@ -1,0 +1,174 @@
+<html lang="en">
+
+</html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Account Info</title>
+    <script src="https://cdn.jsdelivr.net/gh/ethereum/web3.js/dist/web3.min.js"></script>
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,700" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .Account h3 {
+            font-size: 2.5em;
+        }
+
+        /* .Account {
+            margin-left: 100px;
+        } */
+
+        main {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding-top: 100px;
+        }
+
+        .Account {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #f2f2f2;
+            border-radius: 30px;
+            width: 60%;
+            box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+    </style>
+</head>
+
+<body>
+    <header class="site-navbar" role="banner">
+
+        <div class="container">
+            <div class="row align-items-center">
+
+                <div class="col-11 col-xl-2">
+                    <h1 class="mb-0 site-logo"><a href="main.html" class="text-white mb-0"><b style="color: yellow;">Bee</b>Wallet</a></h1>
+                </div>
+                <div class="col-12 col-md-10 d-none d-xl-block">
+                    <nav class="site-navigation position-relative text-right" role="navigation">
+                        <ul class="site-menu js-clone-nav mr-auto d-none d-lg-block">
+                            <li><a href="main.html"><span>Home</span></a></li>
+                            <li onclick="showSection('accountInfo'),refreshAccountInfo()" class="active"><a href="AccountInfo.html"><span>Account Info</span></a></li>
+                            <li class="has-children">
+                                <a href="#"><span>Deposit And Withdrawals</span></a>
+                                <ul class="dropdown arrow-top">
+                                    <li onclick="showSection('addFundsSection')"><a href="DepositAndWithdraw.html">Deposit</a></li>
+                                    <li onclick="showSection('instantWithdrawSection')"><a href="DepositAndWithdraw.html">Instant Withdrawals</a></li>
+                                    <li onclick="showSection('listWithdrawalsSection')"><a href="DepositAndWithdraw.html">List Withdrawals</a></li>
+                                    <li class="has-children">
+                                        <a href="#">Withdrawals</a>
+                                        <ul class="dropdown">
+                                            <li onclick="showSection('listScheduledSection')">
+                                                <a href="DepositAndWithdraw.html">List Scheduled Withdrawals</a>
+                                            </li>
+                                            <li onclick="showSection('scheduleWithdrawSection')"><a href="DepositAndWithdraw.html">Schedule Withdrawals</a></li>
+                                            <li onclick="showSection('executeWithdrawSection')"><a href="DepositAndWithdraw.html">Execute Withdrawals</a></li>
+                                            <li onclick="showSection('cancelWithdrawal')"><a href="DepositAndWithdraw.html">Cancel Withdrawals</a></li>
+                                            <li onclick="showSection('childScheduleWithdraw')"><a href="DepositAndWithdraw.html">Schedule Withdrawals For Child</a></li>
+                                        </ul>
+                                    </li>
+                                </ul>
+                            </li>
+                            <li class="has-children">
+								<a href="#"><span>Transaction</span></a>
+								<ul class="dropdown arrow-top">
+									<li onclick="showSection('instantTransferSection')"><a href="Transaction.html">Instant Transfer</a></li>
+									<li class="has-children">
+										<a href="#">Scheduled Transfers</a>
+										<ul class="dropdown">
+											<li onclick="showSection('scheduleAutoExecution')"><a href="Transaction.html">Schedule Auto Execution</a></li>
+											<li onclick="showSection('getAllScheduledTransfers')"><a href="Transaction.html">Get All Scheduled Transfers</a></li>
+											<li onclick="showSection('cancelScheduledTransfer')"><a href="Transaction.html">Cancel Scheduled Transfer</a></li>
+										</ul>
+									</li>
+									<li class="has-children">
+										<a href="#">Transfer History</a>
+										<ul class="dropdown">
+											<li onclick="showSection('transferHistory')"><a href="Transaction.html">Transfer History</a></li>
+											<li onclick="showSection('getAllTransferHistory')"><a href="Transaction.html">All Transfer History</a></li>
+											<li onclick="showSection('transferDetails')"><a href="Transaction.html">Transfer Details</a></li>
+											<li onclick="showSection('getTotalTransactionAmount')"><a href="Transaction.html">Total Transaction Amount</a></li>
+										</ul>
+									</li>
+								</ul>
+							</li>
+							<li class="has-children class">
+                
+								<a href="#"><span>Interest</span></a>
+								<ul class="dropdown arrow-top">
+								  <li onclick="showSection('interestAccountInfo')"><a href="interest.html">Interest Account</a></li>
+								  <li onclick="showSection('interestIntervalAdjustment')"><a href="interest.html">Interest Interval Adjustment</a></li>
+								  <li class="has-children">
+									<a href="#">Interest Withdrawal</a>
+									<ul class="dropdown">
+									  <li onclick="showSection('addInterest')"><a href="interest.html">Add Interest</a></li>
+									  <li onclick="showSection('withdrawInterest')"><a href="interest.html">Withdraw Interest</a></li>
+									  <li onclick="showSection('distributeInterest')"><a href="interest.html">Distribute Interest</a></li>
+									</ul>
+								  </li>
+								  <li onclick="showSection('interestCalculator')"><a href="interest.html">Interest Calculator</a></li>
+								  <li onclick="showSection('interestHistory')"><a href="interest.html">Interest History</a></li>
+								</ul>
+							  </li>
+                            <li><a href="Reward.html"><span>Reward</span></a></li>
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+        </div>
+        <img src="images/metalogo.png" alt="logo" id="connecLogo" height="40px" width="40px">
+        <input type="text" name="address" id="navAddress" disabled style="position:absolute;  right: 20px; top: 0px; padding: 10px; border-radius: 20px; color: white; font-weight: bold; width: 6%; font-size: 13px;">
+    </header>
+
+    <main>
+        <!-- Display account info -->
+        <div id="accountDetails" class="Account" style="display: block;">
+            <div>
+                <h2>Account: <span id="account"></span></h2>
+            </div>
+            <div style="text-align: center;">
+                <h1 style="font-size: 100px;"><span class="balanceResult">0</span> ETH</h1>
+            </div>         
+            <div id="timeRemainingDiv">
+                <div>
+                    <!-- Child Check time remaining -->
+                    <h2>Time Remaining: <span id="timeRemainingResult"></span></h2>
+                </div>
+            </div>   
+            <div id="timeRemainingChild"></div>
+
+
+            <div id="interestAccountInfo" class="hidden-section">
+                <p style="font-weight: bold; margin: 0; font-size: larger;">Accrual Interval: <span id="accrual-interval" style="font-weight: normal; margin: 0; font-size: smaller;">N/A</span></p>
+                <p style="font-weight: bold; margin: 0; font-size: larger;">Interest Rate: <span id="interest-rate" style="font-weight: normal; margin: 0; font-size: smaller;">0%</span></p>
+        
+                <!-- <button id="refresh-account-info" onclick="refreshAccountInfo()">Refresh Account Info</button> -->
+                <!-- Changed from refreshAccountInfo -->
+            </div>
+
+        </div>
+        <div style="display: none;">
+            <p id="account2"></p>
+            <p id="account3"></p>
+            <form id="addFundsForm">
+                <input type="text" id="amount" placeholder="Enter amount in ETH" required />
+                <button type="submit">Add Funds</button>
+            </form>
+            <div id="fundsResponse"></div>
+        </div>
+
+    </main>
+
+    <script src="script.js"></script>
+</body>
+
+</html>

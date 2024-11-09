@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reward System</title>
+	<script src="https://cdn.jsdelivr.net/gh/ethereum/web3.js/dist/web3.min.js"></script>
+	<link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,700" rel="stylesheet">
+	<link rel="stylesheet" href="style.css">
+	<style>
+		.hidden-section h3 {
+			font-size: 2.5em;
+		}
+
+		.hidden-section {
+			display: none;
+            opacity: 0;
+			transition: opacity 0.5s ease;
+			background-color: rgb(255, 255, 255, 0.2);
+		}
+
+		main {
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			justify-content: center;
+			padding-top: 100px;
+		}
+
+		.hidden-section {
+			margin: 20px 0;
+			padding: 20px;
+			border: 1px solid #f2f2f2;
+			border-radius: 30px;
+			width: 60%;
+			box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.1);
+		}
+
+		form {
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+		}
+
+		button,
+		input {
+			margin: 10px 0;
+		}
+
+		input {
+			width: 100%;
+			height: 30px;
+			padding: 30px 50px;
+			margin-bottom: 10px;
+			border: 1px solid #ccc;
+			border-radius: 30px;
+			/* background: #fafcff; */
+			box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.2);
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			overflow: hidden;
+			font-size: larger;
+
+			&::-webkit-file-upload-button {
+				padding: 6px;
+				border-radius: 20px;
+				border: 1px solid #ccc;
+				background: linear-gradient(to bottom right, #f7fbff, #ccd1d8);
+				cursor: pointer;
+			}
+		}
+
+		button {
+			background-color: #3498db;
+			color: white;
+			border: none;
+			border-radius: 10px;
+            cursor: pointer;
+			padding: 12px 20px;
+			transition: background-color 0.3s, transform 0.1s;
+			font-size: 14px;
+		}
+
+		button.disabled {
+            background-color: grey;
+            cursor: not-allowed;
+        }
+
+        #status {
+            margin-top: 20px;
+            font-weight: bold;
+        }
+
+		.modal {
+			display: none;
+			position: fixed;
+			z-index: 1000;
+			left: 0;
+			top: 0;
+			width: 100%;
+			height: 100%;
+			overflow: auto;
+			background-color: rgba(0, 0, 0, 0.4);
+		}
+
+		.modal-content {
+			background-color: #fefefe;
+			margin: 5% auto;
+			padding: 20px;
+			border: 1px solid #888;
+			width: 90%;
+			max-width: 800px;
+			border-radius: 5px;
+			box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+			max-height: 80vh;
+			overflow-y: auto;
+		}
+
+		.close {
+			color: #aaa;
+			float: right;
+			font-size: 28px;
+			font-weight: bold;
+			cursor: pointer;
+		}
+
+		.close:hover,
+		.close:focus {
+			color: #000;
+			text-decoration: none;
+			cursor: pointer;
+		}
+		
+		
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+		body {
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+        }
+/*
+        body {
+            font-family: Arial, sans-serif;
+            height: 100vh;
+            width: 100vw;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            background-color: #f0f8ff;
+        }
+*/
+        .hidden-section h3 {
+            font-size: 2.5em;
+        }
+
+        .hidden-section {
+            display: none;
+        }
+
+        .table-container {
+            max-height: 400px;
+            overflow-y: auto;
+            margin: 20px auto;
+            width: 80%;
+        }
+
+        input {
+            width: 50%;
+            height: 30px;
+            padding: 20px 40px;
+            margin-top: 30px;
+            border: 1px solid #ccc;
+            border-radius: 30px;
+            background: #fafcff;
+            box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.2);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        button {
+            font-size: 1em;
+            padding: 15px 30px;
+            background: linear-gradient(to bottom right, #42b7f1, #2385e6);
+            color: white;
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.2);
+            transition: background-color 0.3s ease-in-out;
+            margin: 5px;
+        }
+
+        button:hover {
+            background: linear-gradient(to bottom right, rgb(29, 4, 90), #0d7aa5);
+        }
+
+        #status {
+            margin-top: 20px;
+            font-weight: bold;
+        }
+
+        main {
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        header {
+            background-color: #b6f3fd;
+            color: blue;
+            padding: 20px;
+            text-align: center;
+            font-size: 24px;
+            font-weight: bold;
+			
+        }
+			*/
+    </style>
+</head>
+<body>
+	<header class="site-navbar" role="banner">
+
+        <div class="container">
+            <div class="row align-items-center">
+
+                <div class="col-11 col-xl-2">
+                    <h1 class="mb-0 site-logo"><a href="main.html" class="text-white mb-0"><b
+                                style="color: yellow;">Bee</b>Wallet</a></h1>
+                </div>
+                <div class="col-12 col-md-10 d-none d-xl-block">
+                    <nav class="site-navigation position-relative text-right" role="navigation">
+                        <ul class="site-menu js-clone-nav mr-auto d-none d-lg-block">
+                            <li><a href="main.html"><span>Home</span></a></li>
+                            <li onclick="showSection('accountInfo')" id="accountDetails"><a href="AccountInfo.html"><span>Account Info</span></a></li>
+                            <li class="has-children active">
+                                <a href="#"><span>Deposit And Withdrawals</span></a>
+                                <ul class="dropdown arrow-top">
+                                    <li onclick="showSection('addFundsSection')"><a href="#">Deposit</a></li>
+                                    <li onclick="showSection('instantWithdrawSection')"><a href="#">Instant Withdrawals</a></li>
+                                    <li onclick="showSection('listWithdrawalsSection')"><a href="#">List Withdrawals</a></li>
+                                    <li class="has-children">
+                                        <a href="#">Schedule</a>
+                                        <ul class="dropdown">
+                                            <li onclick="showSection('listScheduledSection')"><a href="#">List Scheduled Withdrawals</a></li>
+                                            <li onclick="showSection('scheduleWithdrawSection')"><a href="#">Schedule Withdraw</a></li>
+                                            <li onclick="showSection('executeWithdrawSection')"><a href="#">Execute Withdrawals</a></li>
+                                            <li onclick="showSection('cancelWithdrawal')"><a href="#">Cancel Withdrawals</a></li>
+                                            <li onclick="showSection('childScheduleWithdraw')"><a href="#">Schedule For Child</a></li>
+                                        </ul>
+                                    </li>
+                                </ul>
+                            </li>
+                            <li class="has-children">
+								<a href="#"><span>Transaction</span></a>
+								<ul class="dropdown arrow-top">
+									<li onclick="showSection('instantTransferSection')"><a href="trackmoduleUI.html">Instant Transfer</a></li>
+									<li class="has-children">
+										<a href="#">Scheduled Transfers</a>
+										<ul class="dropdown">
+											<li onclick="showSection('scheduleAutoExecution')"><a href="trackmoduleUI.html">Schedule Auto Execution</a></li>
+											<li onclick="showSection('executeAutoScheduledTransfers')"><a href="trackmoduleUI.html">Execute Auto Scheduled Transfers</a></li>
+											<li onclick="showSection('getAllScheduledTransfers')"><a href="trackmoduleUI.html">Get All Scheduled Transfers</a></li>
+											<li onclick="showSection('cancelScheduledTransfer')"><a href="trackmoduleUI.html">Cancel Scheduled Transfer</a></li>
+										</ul>
+									</li>
+									<li class="has-children">
+										<a href="#">Transfer History</a>
+										<ul class="dropdown">
+											<li onclick="showSection('transferHistory')"><a href="trackmoduleUI.html">Transfer History</a></li>
+											<li onclick="showSection('getAllTransferHistory')"><a href="trackmoduleUI.html">All Transfer History</a></li>
+											<li onclick="showSection('transferDetails')"><a href="trackmoduleUI.html">Transfer Details</a></li>
+											<li onclick="showSection('getTotalTransactionAmount')"><a href="trackmoduleUI.html">Total Transaction Amount</a></li>
+										</ul>
+									</li>
+								</ul>
+							</li>
+ 							<li class="has-children class">
+                
+								<a href="#"><span>Interest</span></a>
+								<ul class="dropdown arrow-top">
+								  <li onclick="showSection('interestAccountInfo')"><a href="interest.html">Interest Account</a></li>
+								  <li onclick="showSection('interestIntervalAdjustment')"><a href="interest.html">Interest Interval Adjustment</a></li>
+								  <li class="has-children">
+									<a href="#">Interest Withdrawal</a>
+									<ul class="dropdown">
+									  <li onclick="showSection('addInterest')"><a href="interest.html">Add Interest</a></li>
+									  <li onclick="showSection('withdrawInterest')"><a href="interest.html">Withdraw Interest</a></li>
+									  <li onclick="showSection('distributeInterest')"><a href="interest.html">Distribute Interest</a></li>
+									</ul>
+								  </li>
+								  <li onclick="showSection('interestCalculator')"><a href="interest.html">Interest Calculator</a></li>
+								  <li onclick="showSection('interestHistory')"><a href="interest.html">Interest History</a></li>
+								</ul>
+							  </li>
+                            <li><a href="Reward.html"><span>Reward</span></a></li>
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+
+        </div>
+        <img src="images/metalogo.png" alt="logo" id="connecLogo" height="40px" width="40px">
+        <input type="text" name="address" id="navAddress" disabled style="position:absolute;  right: 20px; top: 0px; padding: 10px; border-radius: 20px; color: white; font-weight: bold; width: 6%; font-size: 13px;">
+    </header>
+    <main>
+        <div class="action-buttons">
+            <button onclick="connectWallet()">Connect MetaMask</button>
+            <button onclick="checkInDaily()">Daily Check-In</button>
+            <button onclick="checkPoints()">Check Points</button>
+			<button onclick="claimWeeklyReward()">Claim Weekly Reward (Deposit/Withdraw)</button>
+            <button id="prizeA" class="disabled" onclick="redeemPrize('Prize A: Gift Card', 1)" disabled>Redeem Prize A: Gift Card (1 Point)</button>
+            <button id="prizeB" class="disabled" onclick="redeemPrize('Prize B: MiniBit', 5)" disabled>Redeem Prize B: MiniBit (5 Points)</button>
+            <button id="prizeC" class="disabled" onclick="redeemPrize('Prize C: Virtual Badge', 10)" disabled>Redeem Prize C: Virtual Badge (10 Points)</button>
+			<button onclick="checkRewardStatus()">Check Reward Status</button>
+        </div>
+
+        <div id="status">
+            <p>Status messages will appear here...</p>
+        </div>
+
+        <div class="hidden-section" id="prizesSection">
+            <h3>Prizes Redeemed</h3>
+            <ul id="redeemedPrizesList">
+                <!-- Prize redemption list will be populated here -->
+            </ul>
+        </div>
+    </main>
+
+    <script>
+        let web3;
+        let rewardContract;
+        let account;
+
+        const rewardAbi = [
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "user",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "points",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "timestamp",
+				"type": "uint256"
+			}
+		],
+		"name": "DailyRewardClaimed",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "user",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"internalType": "string",
+				"name": "prize",
+				"type": "string"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "pointsSpent",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "timestamp",
+				"type": "uint256"
+			}
+		],
+		"name": "PrizePurchased",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "user",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"internalType": "string",
+				"name": "message",
+				"type": "string"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "timestamp",
+				"type": "uint256"
+			}
+		],
+		"name": "RewardReminder",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "user",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "points",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "timestamp",
+				"type": "uint256"
+			}
+		],
+		"name": "WeeklyRewardClaimed",
+		"type": "event"
+	},
+	{
+		"inputs": [],
+		"name": "checkInDaily",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "checkRewardStatus",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "_user",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "_amount",
+				"type": "uint256"
+			}
+		],
+		"name": "onFundsDeposit",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "_user",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "_amount",
+				"type": "uint256"
+			}
+		],
+		"name": "onFundsWithdrawal",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "_points",
+				"type": "uint256"
+			},
+			{
+				"internalType": "string",
+				"name": "_prize",
+				"type": "string"
+			}
+		],
+		"name": "redeemPrize",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "_accountAddress",
+				"type": "address"
+			},
+			{
+				"internalType": "address",
+				"name": "_transactionAddress",
+				"type": "address"
+			},
+			{
+				"internalType": "address",
+				"name": "_depositAddress",
+				"type": "address"
+			},
+			{
+				"internalType": "address",
+				"name": "_accountContractAddress",
+				"type": "address"
+			}
+		],
+		"stateMutability": "nonpayable",
+		"type": "constructor"
+	},
+	{
+		"inputs": [],
+		"name": "accountContract",
+		"outputs": [
+			{
+				"internalType": "contract Account",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "checkPoints",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "depositContract",
+		"outputs": [
+			{
+				"internalType": "contract DepositAndWithdraw",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "transactionContract",
+		"outputs": [
+			{
+				"internalType": "contract Transaction",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"name": "userRewards",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "totalPoints",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "lastDailyLogin",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "lastWeeklyReward",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	}
+];  
+        const rewardAddress = '0xd9455F3179E0e828CE894b7A1D60E0ce746c6fF9'; 
+
+        async function connectWallet() {
+            if (window.ethereum) {
+                web3 = new Web3(window.ethereum);
+                await ethereum.request({ method: 'eth_requestAccounts' });
+                const accounts = await web3.eth.getAccounts();
+                account = accounts[0];
+                console.log('Connected account:', account);
+
+                // Initialize the contract globally once MetaMask is connected
+                rewardContract = new web3.eth.Contract(rewardAbi, rewardAddress);
+
+                document.getElementById('status').innerText = `Connected: ${account}`;
+				enableRedeemButtons();
+            } else {
+                alert("Please install MetaMask to use this feature.");
+            }
+        }
+
+		// Function to enable the redeem prize buttons once MetaMask is connected
+        function enableRedeemButtons() {
+            const prizeButtons = document.querySelectorAll('button[id^="prize"]');
+            prizeButtons.forEach(button => {
+                button.disabled = false;
+                button.classList.remove('disabled');
+            });
+        }
+
+        async function checkInDaily() {
+            if (!account) {
+                alert('Please connect MetaMask first.');
+                return;
+            }
+
+            try {
+                await rewardContract.methods.checkInDaily().send({ from: account });
+                document.getElementById('status').innerText = "Daily Check-In completed. You've earned 1 reward point!";
+            } catch (error) {
+                console.error(error);
+                document.getElementById('status').innerText = "Error: Unable to complete Daily Check-In.";
+            }
+        }
+
+		async function claimWeeklyReward() {
+            if (!account) {
+                alert('Please connect MetaMask first.');
+                return;
+            }
+
+            try {
+                // Call the function to simulate deposit/withdraw and claim the weekly reward
+                const amount = prompt('Enter the amount of Ether you deposited/withdrew:');
+                if (!amount || isNaN(amount)) {
+                    alert('Invalid amount. Please enter a number.');
+                    return;
+                }
+
+                await rewardContract.methods.onFundsDeposit(account, web3.utils.toWei(amount, 'ether')).send({ from: account });
+                document.getElementById('status').innerText = `Weekly reward claimed for ${amount} ETH deposit/withdrawal.`;
+            } catch (error) {
+                console.error(error);
+                document.getElementById('status').innerText = "Error: Unable to claim weekly reward.";
+            }
+        }
+
+        async function checkPoints() {
+            if (!account) {
+                alert('Please connect MetaMask first.');
+                return;
+            }
+
+            try {
+                const points = await rewardContract.methods.checkPoints().call({ from: account });
+                document.getElementById('status').innerText = `You have ${points} reward points.`;
+            } catch (error) {
+                console.error(error);
+                document.getElementById('status').innerText = "Error: Unable to check points.";
+            }
+        }
+
+        async function redeemPrize(prizeName, pointsRequired) {
+            if (!account) {
+                alert('Please connect MetaMask first.');
+                return;
+            }
+
+            try {
+                await rewardContract.methods.redeemPrize(pointsRequired, prizeName).send({ from: account });
+                document.getElementById('status').innerText = `Prize redeemed: ${prizeName} for ${pointsRequired} points!`;
+
+                // Update the redeemed prizes list
+                const redeemedPrizesList = document.getElementById('redeemedPrizesList');
+                const newListItem = document.createElement('li');
+                newListItem.textContent = `${prizeName} (Cost: ${pointsRequired} points)`;
+                redeemedPrizesList.appendChild(newListItem);
+
+                // Make the prize section visible after first prize redemption
+                document.getElementById('prizesSection').style.display = 'block';
+
+            } catch (error) {
+                console.error(error);
+                document.getElementById('status').innerText = `Error: Unable to redeem ${prizeName} Not enough points!`;
+            }
+        }
+
+        async function checkRewardStatus() {
+            if (!account) {
+                alert('Please connect MetaMask first.');
+                return;
+            }
+
+            try {
+                await rewardContract.methods.checkRewardStatus().send({ from: account });
+                document.getElementById('status').innerText = "Reward status checked. All rewards are available!";
+            } catch (error) {
+                console.error(error);
+                document.getElementById('status').innerText = "Error: Unable to check reward status.";
+            }
+        }
+    </script>
+</body>
+</html>

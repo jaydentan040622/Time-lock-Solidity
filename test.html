@@ -1,0 +1,1550 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">	
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Deposit and Withdrawal</title>
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.6.0/css/fontawesome.min.css" integrity="sha384-NvKbDTEnL+A8F/AA5Tc5kmMLSJHUO868P+lDtTpJIeQdGYaUIuLr4lVGOEA1OcMy" crossorigin="anonymous">
+	<script src="https://cdn.jsdelivr.net/gh/ethereum/web3.js/dist/web3.min.js"></script>
+	<style>
+@import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap');
+         *{
+           margin: 0;
+           padding: 0;
+           user-select: none;
+           box-sizing: border-box;
+           font-family: 'Poppins', sans-serif;
+         }
+         .btn{
+           position: absolute;
+           top: 15px;
+           left: 45px;
+           height: 45px;
+           width: 45px;
+           text-align: center;
+           background: #1b1b1b;
+           border-radius: 3px;
+           cursor: pointer;
+           transition: left 0.4s ease;
+         }
+         .btn.click{
+           left: 260px;
+         }
+         .btn span{
+           color: white;
+           font-size: 28px;
+           line-height: 45px;
+         }
+         .btn.click span:before{
+           content: '\f00d';
+         }
+         .sidebar{
+           position: fixed;
+           width: 250px;
+           height: 100%;
+           left: -250px;
+           background: #1b1b1b;
+           transition: left 0.4s ease;
+         }
+         .sidebar.show{
+           left: 0px;
+         }
+         .sidebar .text{
+           color: white;
+           font-size: 25px;
+           font-weight: 600;
+           line-height: 65px;
+           text-align: center;
+           background: #1e1e1e;
+           letter-spacing: 1px;
+         }
+         nav ul{
+           background: #1b1b1b;
+           height: 100%;
+           width: 100%;
+           list-style: none;
+         }
+         nav ul li{
+           line-height: 60px;
+           border-top: 1px solid rgba(255,255,255,0.1);
+         }
+         nav ul li:last-child{
+           border-bottom: 1px solid rgba(255,255,255,0.05);
+         }
+         nav ul li a{
+           position: relative;
+           color: white;
+           text-decoration: none;
+           font-size: 18px;
+           padding-left: 40px;
+           font-weight: 500;
+           display: block;
+           width: 100%;
+           border-left: 3px solid transparent;
+         }
+         nav ul li.active a{
+           color: cyan;
+           background: #1e1e1e;
+           border-left-color: cyan;
+         }
+         nav ul li a:hover{
+           background: #1e1e1e;
+         }
+         nav ul ul{
+           position: static;
+           display: none;
+         }
+         nav ul .feat-show.show{
+           display: block;
+         }
+         nav ul .serv-show.show1{
+           display: block;
+         }
+         nav ul ul li{
+           line-height: 42px;
+           border-top: none;
+         }
+         nav ul ul li a{
+           font-size: 17px;
+           color: #e6e6e6;
+           padding-left: 80px;
+         }
+         nav ul li.active ul li a{
+           color: #e6e6e6;
+           background: #1b1b1b;
+           border-left-color: transparent;
+         }
+         nav ul ul li a:hover{
+           color: cyan!important;
+           background: #1e1e1e!important;
+         }
+         nav ul li a span{
+           position: absolute;
+           top: 50%;
+           right: 20px;
+           transform: translateY(-50%);
+           font-size: 22px;
+           transition: transform 0.4s;
+         }
+         nav ul li a span.rotate{
+           transform: translateY(-50%) rotate(-180deg);
+         }
+         .content{
+           position: absolute;
+           top: 50%;
+           left: 50%;
+           transform: translate(-50%,-50%);
+           color: #202020;
+           z-index: -1;
+           text-align: center;
+         }
+         .content .header{
+           font-size: 45px;
+           font-weight: 600;
+         }
+         .content p{
+           font-size: 30px;
+           font-weight: 500;
+         }
+         .hidden-section {
+           display: none;
+         }
+      </style>
+</head>
+
+<body>
+
+
+	<script>
+		let account;
+		let web3;
+		let contract;
+
+		// Define the ABI and contract address globally
+		const ABI = [
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "_child",
+						"type": "address"
+					}
+				],
+				"name": "addChildAccount",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "addFunds",
+				"outputs": [],
+				"stateMutability": "payable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "_amount",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "_unlockTime",
+						"type": "uint256"
+					}
+				],
+				"name": "addScheduleWithdraw",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "_child",
+						"type": "address"
+					},
+					{
+						"internalType": "uint256",
+						"name": "_amountWithdraw",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "_unlockTime",
+						"type": "uint256"
+					}
+				],
+				"name": "addScheduleWithdrawForChild",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "_index",
+						"type": "uint256"
+					}
+				],
+				"name": "cancelScheduledTransfer",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "_index",
+						"type": "uint256"
+					}
+				],
+				"name": "cancelScheduleWithdraw",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"stateMutability": "nonpayable",
+				"type": "constructor"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "parent",
+						"type": "address"
+					},
+					{
+						"indexed": false,
+						"internalType": "address",
+						"name": "child",
+						"type": "address"
+					}
+				],
+				"name": "ChildAccountAdded",
+				"type": "event"
+			},
+			{
+				"inputs": [],
+				"name": "executeAutoScheduledTransfers",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "_index",
+						"type": "uint256"
+					}
+				],
+				"name": "executeScheduledWithdraw",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "account",
+						"type": "address"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "amount",
+						"type": "uint256"
+					}
+				],
+				"name": "FundsAdded",
+				"type": "event"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "_to",
+						"type": "address"
+					},
+					{
+						"internalType": "uint256",
+						"name": "_amount",
+						"type": "uint256"
+					}
+				],
+				"name": "instantTransfer",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "pause",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"anonymous": false,
+				"inputs": [],
+				"name": "Paused",
+				"type": "event"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "_to",
+						"type": "address"
+					},
+					{
+						"internalType": "uint256",
+						"name": "_amount",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "_unlockTime",
+						"type": "uint256"
+					}
+				],
+				"name": "scheduleAutoExecution",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "sender",
+						"type": "address"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "amount",
+						"type": "uint256"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "index",
+						"type": "uint256"
+					}
+				],
+				"name": "ScheduledTransferCancelled",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "sender",
+						"type": "address"
+					},
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "receiver",
+						"type": "address"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "amount",
+						"type": "uint256"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "unlockTime",
+						"type": "uint256"
+					}
+				],
+				"name": "ScheduledTransferCreated",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "sender",
+						"type": "address"
+					},
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "receiver",
+						"type": "address"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "amount",
+						"type": "uint256"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "index",
+						"type": "uint256"
+					}
+				],
+				"name": "ScheduledTransferExecuted",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "account",
+						"type": "address"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "amount",
+						"type": "uint256"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "index",
+						"type": "uint256"
+					}
+				],
+				"name": "ScheduledWithdrawCancelled",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "account",
+						"type": "address"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "amount",
+						"type": "uint256"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "unlockTime",
+						"type": "uint256"
+					}
+				],
+				"name": "ScheduledWithdrawCreated",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "account",
+						"type": "address"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "amount",
+						"type": "uint256"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "index",
+						"type": "uint256"
+					}
+				],
+				"name": "ScheduledWithdrawExecuted",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "sender",
+						"type": "address"
+					},
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "receiver",
+						"type": "address"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "amount",
+						"type": "uint256"
+					}
+				],
+				"name": "TransferExecuted",
+				"type": "event"
+			},
+			{
+				"inputs": [],
+				"name": "unpause",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"anonymous": false,
+				"inputs": [],
+				"name": "Unpaused",
+				"type": "event"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "_amount",
+						"type": "uint256"
+					}
+				],
+				"name": "withdraw",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "account",
+						"type": "address"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "amount",
+						"type": "uint256"
+					}
+				],
+				"name": "WithdrawalMade",
+				"type": "event"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "",
+						"type": "address"
+					}
+				],
+				"name": "accounts",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "balance",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "startTime",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "contractEndTime",
+						"type": "uint256"
+					},
+					{
+						"internalType": "address",
+						"name": "parent",
+						"type": "address"
+					},
+					{
+						"internalType": "bool",
+						"name": "isChild",
+						"type": "bool"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "checkMyBalance",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "_child",
+						"type": "address"
+					}
+				],
+				"name": "checkTimeRemaining",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "getAllScheduledTransfers",
+				"outputs": [
+					{
+						"internalType": "address[]",
+						"name": "receivers",
+						"type": "address[]"
+					},
+					{
+						"internalType": "uint256[]",
+						"name": "amounts",
+						"type": "uint256[]"
+					},
+					{
+						"internalType": "uint256[]",
+						"name": "unlockTimes",
+						"type": "uint256[]"
+					},
+					{
+						"internalType": "bool[]",
+						"name": "activeStatuses",
+						"type": "bool[]"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "_user",
+						"type": "address"
+					}
+				],
+				"name": "getAllTransferHistory",
+				"outputs": [
+					{
+						"components": [
+							{
+								"internalType": "address",
+								"name": "sender",
+								"type": "address"
+							},
+							{
+								"internalType": "address",
+								"name": "receiver",
+								"type": "address"
+							},
+							{
+								"internalType": "uint256",
+								"name": "amount",
+								"type": "uint256"
+							},
+							{
+								"internalType": "uint256",
+								"name": "timestamp",
+								"type": "uint256"
+							}
+						],
+						"internalType": "struct DepositAndWithdraw.TransferRecord[]",
+						"name": "",
+						"type": "tuple[]"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "getCurrentBlockTimestamp",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "_sender",
+						"type": "address"
+					},
+					{
+						"internalType": "address",
+						"name": "_receiver",
+						"type": "address"
+					}
+				],
+				"name": "getTotalTransactionAmount",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "_user",
+						"type": "address"
+					},
+					{
+						"internalType": "uint256",
+						"name": "_index",
+						"type": "uint256"
+					}
+				],
+				"name": "getTransferDetails",
+				"outputs": [
+					{
+						"internalType": "address",
+						"name": "sender",
+						"type": "address"
+					},
+					{
+						"internalType": "address",
+						"name": "receiver",
+						"type": "address"
+					},
+					{
+						"internalType": "uint256",
+						"name": "amount",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "timestamp",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "_user1",
+						"type": "address"
+					},
+					{
+						"internalType": "address",
+						"name": "_user2",
+						"type": "address"
+					}
+				],
+				"name": "getTransferHistory",
+				"outputs": [
+					{
+						"components": [
+							{
+								"internalType": "address",
+								"name": "sender",
+								"type": "address"
+							},
+							{
+								"internalType": "address",
+								"name": "receiver",
+								"type": "address"
+							},
+							{
+								"internalType": "uint256",
+								"name": "amount",
+								"type": "uint256"
+							},
+							{
+								"internalType": "uint256",
+								"name": "timestamp",
+								"type": "uint256"
+							}
+						],
+						"internalType": "struct DepositAndWithdraw.TransferRecord[]",
+						"name": "",
+						"type": "tuple[]"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "_account",
+						"type": "address"
+					}
+				],
+				"name": "listScheduledWithdrawals",
+				"outputs": [
+					{
+						"components": [
+							{
+								"internalType": "address",
+								"name": "recipient",
+								"type": "address"
+							},
+							{
+								"internalType": "uint256",
+								"name": "amount",
+								"type": "uint256"
+							},
+							{
+								"internalType": "uint256",
+								"name": "unlockTime",
+								"type": "uint256"
+							},
+							{
+								"internalType": "bool",
+								"name": "active",
+								"type": "bool"
+							}
+						],
+						"internalType": "struct DepositAndWithdraw.ScheduledWithdraw[]",
+						"name": "",
+						"type": "tuple[]"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "owner",
+				"outputs": [
+					{
+						"internalType": "address",
+						"name": "",
+						"type": "address"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "paused",
+				"outputs": [
+					{
+						"internalType": "bool",
+						"name": "",
+						"type": "bool"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "",
+						"type": "address"
+					},
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"name": "scheduledTransfers",
+				"outputs": [
+					{
+						"internalType": "address",
+						"name": "sender",
+						"type": "address"
+					},
+					{
+						"internalType": "address",
+						"name": "receiver",
+						"type": "address"
+					},
+					{
+						"internalType": "uint256",
+						"name": "amount",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "unlockTime",
+						"type": "uint256"
+					},
+					{
+						"internalType": "bool",
+						"name": "active",
+						"type": "bool"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "",
+						"type": "address"
+					},
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"name": "scheduledWithdrawals",
+				"outputs": [
+					{
+						"internalType": "address",
+						"name": "recipient",
+						"type": "address"
+					},
+					{
+						"internalType": "uint256",
+						"name": "amount",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "unlockTime",
+						"type": "uint256"
+					},
+					{
+						"internalType": "bool",
+						"name": "active",
+						"type": "bool"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "",
+						"type": "address"
+					},
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"name": "transferHistory",
+				"outputs": [
+					{
+						"internalType": "address",
+						"name": "sender",
+						"type": "address"
+					},
+					{
+						"internalType": "address",
+						"name": "receiver",
+						"type": "address"
+					},
+					{
+						"internalType": "uint256",
+						"name": "amount",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "timestamp",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			}
+		];
+		const Address = "0x8CEAEA90A8E42D826125560C6954acdd5a7eC217"; // Replace with your contract address
+
+		// Function to show the correct section and hide others
+		function showSection(sectionId) {
+			const sections = document.querySelectorAll('.hidden-section');
+			sections.forEach(section => section.style.display = 'none');  // Hide all sections
+			document.getElementById(sectionId).style.display = 'block';  // Show the selected section
+		}
+
+		function showNav(sectionId) {
+			const sections = document.querySelectorAll('.navBar');
+			sections.forEach(section => section.style.display = 'none');  // Hide all sections
+			document.getElementById(sectionId).style.display = 'block';  // Show the selected section
+		}
+
+		// Connect MetaMask Wallet
+		async function connectWallet() {
+			if (window.ethereum) {
+				try {
+					const accounts = await ethereum.request({ method: 'eth_requestAccounts' });
+					account = accounts[0];
+					document.getElementById('account').innerText = account;
+					web3 = new Web3(window.ethereum); // Instantiate web3 with MetaMask provider
+					contract = new web3.eth.Contract(ABI, Address); // Instantiate the contract
+					document.getElementById('contractArea').innerText = "Transaction Smart Contract";
+				} catch (error) {
+					console.error("User denied account access", error);
+					alert("Error connecting wallet. Check console for details.");
+				}
+			} else {
+				alert("Please install MetaMask!");
+			}
+		}
+
+		// Checking the balance
+		const checkBalanceBtn = document.getElementById('checkBalanceBtn');
+		checkBalanceBtn.addEventListener('click', async () => {
+			const accounts = await web3.eth.getAccounts();
+			const sender = accounts[0];
+
+			contract.methods.checkMyBalance().call({ from: sender })
+				.then((balance) => {
+					const etherBalance = web3.utils.fromWei(balance, 'ether');
+					document.getElementById('balanceResult').innerText = `${etherBalance} ETH`;
+				})
+				.catch((error) => {
+					document.getElementById('balanceResult').innerText = `Please coonect to MetaMask`;
+				});
+		});
+
+		// Fetch and display the current block timestamp
+		const getTimestampBtn = document.getElementById('getTimestampBtn');
+		getTimestampBtn.addEventListener('click', async () => {
+			try {
+				const timestamp = await contract.methods.getCurrentBlockTimestamp().call();
+				document.getElementById('timestampResult').innerText = `${timestamp}`;
+			} catch (error) {
+				document.getElementById('timestampResult').innerText = `Please connect to MetaMask`;
+			}
+		});
+
+		// Handle checking time remaining
+		const checkTimeBtn = document.getElementById('checkTimeBtn');
+		checkTimeBtn.addEventListener('click', async () => {
+			const accounts = await web3.eth.getAccounts();
+			const sender = accounts[0];
+
+			contract.methods.checkTimeRemaining(sender).call({
+				from: sender
+			})
+				.then((timeRemaining) => {
+					if (timeRemaining == 0) {
+						document.getElementById('timeRemainingResult').innerText = "No time remaining (contract ended).";
+					} else {
+						// Convert seconds to a human-readable format (days, hours, minutes)
+						const days = Math.floor(timeRemaining / (3600 * 24));
+						const hours = Math.floor((timeRemaining % (3600 * 24)) / 3600);
+						const minutes = Math.floor((timeRemaining % 3600) / 60);
+						const seconds = timeRemaining % 60;
+
+						document.getElementById('timeRemainingResult').innerText =
+							`${days} days, ${hours} hours, ${minutes} minutes, ${seconds} seconds`;
+					}
+				})
+				.catch((error) => {
+					document.getElementById('timeRemainingResult').innerText = `Error: ${error.message}`;
+				});
+		});
+
+		// Add Funds to the contract
+		const addFundsForm = document.getElementById('addFundsForm');
+		addFundsForm.addEventListener('submit', async (e) => {
+			e.preventDefault();
+			const amount = document.getElementById('amount').value;
+			const accounts = await web3.eth.getAccounts();
+			const sender = accounts[0];
+
+			contract.methods.addFunds().send({
+				from: sender,
+				value: web3.utils.toWei(amount, 'ether')
+			})
+				.then((receipt) => {
+					document.getElementById('fundsResponse').innerText = 'Funds added successfully!';
+				})
+				.catch((error) => {
+					document.getElementById('fundsResponse').innerText = `Error`;
+				});
+		});
+
+		// Function to withdraw instantly
+		async function instantWithdraw() {
+			const amount = document.getElementById('instantWithdrawAmount').value;
+
+			if (amount > 0) {
+				try {
+					await contract.methods.withdraw(web3.utils.toWei(amount, 'ether')).send({ from: account });
+					alert("Instant withdrawal successful!");
+				} catch (error) {
+					console.error("Error withdrawing instantly:", error);
+					alert("Error in instant withdrawal. Check console for details.");
+				}
+			} else {
+				alert("Please enter a valid withdrawal amount.");
+			}
+		}
+
+		// List all scheduled withdrawals for the connected account and display them in a table
+		async function listScheduledWithdrawals() {
+			try {
+				// Fetch the scheduled withdrawals from the contract
+				const scheduledWithdrawals = await contract.methods.listScheduledWithdrawals(account).call();
+
+				// Get the table body where the rows will be populated
+				const tableBody = document.getElementById('withdrawalsBody');
+
+				// Clear previous rows
+				tableBody.innerHTML = '';
+
+				// Loop through the scheduled withdrawals and populate the table
+				scheduledWithdrawals.forEach((withdrawal, index) => {
+					const amount = web3.utils.fromWei(withdrawal.amount, 'ether');  // Convert amount from Wei to ETH
+					const unlockTime = new Date(withdrawal.unlockTime * 1000).toLocaleString();  // Convert UNIX timestamp to readable date
+					const isActive = withdrawal.active ? 'Yes' : 'No';  // Check if withdrawal is still active
+
+					// Create a new row for each scheduled withdrawal
+					const row = document.createElement('tr');
+					row.innerHTML = `
+                        <td>${index}</td>
+                        <td>${amount}</td>
+                        <td>${unlockTime}</td>
+                        <td>${isActive}</td>
+                    `;
+
+					// Append the new row to the table body
+					tableBody.appendChild(row);
+				});
+			} catch (error) {
+				console.error("Error listing scheduled withdrawals:", error);
+			}
+		}
+
+		// Call listScheduledWithdrawals initially to display withdrawals when the page loads
+		window.onload = listScheduledWithdrawals;
+
+		// Add a child account
+		async function addChildAccount() {
+			const childAddress = document.getElementById('childAddress').value;
+			if (web3.utils.isAddress(childAddress)) {
+				try {
+					await contract.methods.addChildAccount(childAddress).send({ from: account });
+					alert("Child account added successfully!");
+				} catch (error) {
+					console.error("Error adding child account:", error);
+					alert("Error adding child account. Check console for details.");
+				}
+			} else {
+				alert("Please enter a valid child address.");
+			}
+		}
+
+		// Schedule withdrawal for the child account
+		async function addScheduleWithdraw() {
+			const amount = document.getElementById('withdrawAmount').value;
+			const datetimeInput = document.getElementById('withdrawDateTime').value;
+			const date = new Date(datetimeInput);
+			const unlockPeriod = Math.floor(date.getTime() / 1000); // Correctly getting the unlock time in seconds
+
+			const timestamp = await contract.methods.getCurrentBlockTimestamp().call();
+
+			if (amount > 0 && unlockPeriod > timestamp) {
+				try {
+					await contract.methods.addScheduleWithdraw(
+						web3.utils.toWei(amount, 'ether'),
+						unlockPeriod // Use the numeric unlockPeriod here
+					).send({ from: account });
+					alert("Scheduled withdrawal successfully!");
+				} catch (error) {
+					console.error("Error scheduling withdrawal:", error);
+					alert("Error scheduling withdrawal. Check console for details.");
+				}
+			} else {
+				alert("Please enter a valid amount and unlock period.");
+			}
+		}
+
+		// Execute scheduled withdrawal
+		async function executeScheduledWithdraw() {
+			const withdrawIndex = document.getElementById('withdrawIndex').value;
+			if (withdrawIndex >= 0) {
+				try {
+					await contract.methods.executeScheduledWithdraw(withdrawIndex).send({ from: account });
+					alert("Withdrawal executed successfully!");
+				} catch (error) {
+					console.error("Error executing withdrawal:", error);
+					alert("Error executing withdrawal. Check console for details.");
+				}
+			} else {
+				alert("Please enter a valid withdrawal index.");
+			}
+		}
+
+		// Call the function when the child clicks a button, providing the correct index of the scheduled withdrawal
+
+
+		// Cancel Schedule Withdraw
+		const cancelWithdrawalForm = document.getElementById('cancelWithdrawalForm');
+		cancelWithdrawalForm.addEventListener('submit', async (e) => {
+			e.preventDefault();
+			const withdrawalIndex = document.getElementById('withdrawalIndex').value;
+			const accounts = await web3.eth.getAccounts();
+			const sender = accounts[0];
+
+			contract.methods.cancelScheduleWithdraw(withdrawalIndex).send({
+				from: sender
+			})
+				.then((receipt) => {
+					document.getElementById('cancelResponse').innerText = `Scheduled withdrawal at index ${withdrawalIndex} canceled successfully.`;
+				})
+				.catch((error) => {
+					document.getElementById('cancelResponse').innerText = `Error: ${error.message}`;
+				});
+		});
+
+		document.getElementById('withdrawForm').addEventListener('submit', async function (e) {
+			e.preventDefault(); // Prevent form from submitting the default way
+
+			const childAddress = document.getElementById('childAddress').value;
+			const amount = document.getElementById('amountWithdraw').value;
+			const unlockDate = document.getElementById('unlockTime').value;
+
+			// Convert unlock date to Unix timestamp
+			const unlockTimestamp = Math.floor(new Date(unlockDate).getTime() / 1000);
+
+			// Convert amount to Wei (smallest Ether unit)
+			const weiAmount = web3.utils.toWei(amount.toString(), 'ether');
+
+			// Get the parent (the current connected account) from MetaMask
+			const accounts = await web3.eth.getAccounts();
+			const parentAccount = accounts[0];
+
+			// Call the addScheduleWithdrawForChild function
+			try {
+				await contract.methods.addScheduleWithdrawForChild(childAddress, weiAmount, unlockTimestamp)
+					.send({ from: parentAccount });
+
+				alert(`Scheduled withdrawal of ${amount} ETH for child ${childAddress}, to be unlocked on ${unlockDate}`);
+			} catch (error) {
+				console.error(error);
+				alert('Error scheduling withdrawal. See console for details.');
+			}
+		});
+
+		async function instantTransfer() {
+			const to = document.getElementById('instantTransferTo').value;
+			const amount = document.getElementById('instantTransferAmount').value;
+			const accounts = await web3.eth.getAccounts();
+			try {
+				await contract.methods.instantTransfer(to, web3.utils.toWei(amount, 'ether')).send({ from: accounts[0] });
+				document.getElementById('status').innerText = 'Transfer successful';
+			} catch (error) {
+				console.error(error);
+				document.getElementById('status').innerText = 'Transfer failed';
+			}
+		}
+
+		async function cancelScheduledTransfer() {
+			const index = document.getElementById('cancelTransferIndex').value;
+			const accounts = await web3.eth.getAccounts();
+			try {
+				const result = await contract.methods.cancelScheduledTransfer(index).send({ from: accounts[0] });
+				console.log('Transaction result:', result);
+				document.getElementById('status').innerText = 'Scheduled transfer cancelled successfully';
+				// Refresh the pending transfers display
+				await displayPendingTransfers();
+			} catch (error) {
+				console.error('Error details:', error);
+				document.getElementById('status').innerText = 'Failed to cancel scheduled transfer: ' + error.message;
+			}
+		}
+
+		async function scheduleAutoExecution() {
+			const to = document.getElementById('autoScheduleTransferTo').value;
+			const amount = document.getElementById('autoScheduleTransferAmount').value;
+			const unlockTime = Math.floor(new Date(document.getElementById('autoScheduleTransferUnlockTime').value).getTime() / 1000);
+			const accounts = await web3.eth.getAccounts();
+
+			if (isNaN(amount) || parseFloat(amount) <= 0 || isNaN(unlockTime)) {
+				document.getElementById('status').innerText = 'Invalid amount or unlock time';
+				return;
+			}
+
+			try {
+				await contract.methods.scheduleAutoExecution(to, web3.utils.toWei(amount, 'ether'), unlockTime).send({ from: accounts[0] });
+				document.getElementById('status').innerText = 'Auto execution transfer scheduled';
+			} catch (error) {
+				console.error(error);
+				document.getElementById('status').innerText = 'Failed to schedule auto execution transfer: ' + error.message;
+			}
+		}
+
+		async function executeAutoScheduledTransfers() {
+			const accounts = await web3.eth.getAccounts();
+			try {
+				const receipt = await contract.methods.executeAutoScheduledTransfers().send({ from: accounts[0] });
+				const gasUsed = receipt.gasUsed;
+				document.getElementById('status').innerText = `Auto scheduled transfers executed. Gas used: ${gasUsed}`;
+			} catch (error) {
+				console.error(error);
+				document.getElementById('status').innerText = 'Failed to execute auto scheduled transfers: ' + error.message;
+			}
+		}
+
+		async function getAllScheduledTransfers() {
+			const accounts = await web3.eth.getAccounts();
+			try {
+				const result = await contract.methods.getAllScheduledTransfers().call({ from: accounts[0] });
+				const { receivers, amounts, unlockTimes, activeStatuses } = result;
+
+				let html = '<h3>All Scheduled Transfers:</h3>';
+				for (let i = 0; i < receivers.length; i++) {
+					const status = activeStatuses[i] ? 'Active' : 'Inactive';
+					const unlockDate = new Date(unlockTimes[i] * 1000);
+					const now = new Date();
+					const timeRemaining = unlockDate > now ?
+						`(${formatTimeRemaining(unlockDate - now)} remaining)` :
+						'(Ready for execution)';
+
+					html += `
+                <div style="margin-bottom: 15px; padding: 10px; border: 1px solid #ccc; border-radius: 5px;">
+                    <strong>Transfer #${i + 1}</strong><br>
+                    Recipient: ${receivers[i]}<br>
+                    Amount: ${parseFloat(web3.utils.fromWei(amounts[i], 'ether')).toFixed(4)} ETH<br>
+                    Unlock Time: ${unlockDate.toLocaleString()} ${timeRemaining}<br>
+                    Status: ${status}
+                </div>
+            `;
+				}
+
+				document.getElementById('status').innerHTML = html;
+			} catch (error) {
+				console.error(error);
+				document.getElementById('status').innerText = 'Failed to get all scheduled transfers: ' + error.message;
+			}
+		}
+
+		function formatTimeRemaining(ms) {
+			const seconds = Math.floor(ms / 1000);
+			const minutes = Math.floor(seconds / 60);
+			const hours = Math.floor(minutes / 60);
+			const days = Math.floor(hours / 24);
+
+			if (days > 0) return `${days} day${days > 1 ? 's' : ''}`;
+			if (hours > 0) return `${hours} hour${hours > 1 ? 's' : ''}`;
+			if (minutes > 0) return `${minutes} minute${minutes > 1 ? 's' : ''}`;
+			return `${seconds} second${seconds !== 1 ? 's' : ''}`;
+		}
+
+
+
+
+		async function getTransferHistory() {
+			const user1 = document.getElementById('transferHistoryUser1').value;
+			const user2 = document.getElementById('transferHistoryUser2').value;
+			try {
+				const history = await contract.methods.getTransferHistory(user1, user2).call();
+				const formattedHistory = history.map(transfer => ({
+					sender: transfer.sender,
+					receiver: transfer.receiver,
+					amount: web3.utils.fromWei(transfer.amount, 'ether'),
+					timestamp: new Date(transfer.timestamp * 1000).toLocaleString()
+				}));
+				document.getElementById('status').innerHTML = '<h3>Transfer History:</h3>' +
+					formattedHistory.map(t => `<p>From: ${t.sender}<br>To: ${t.receiver}<br>Amount: ${t.amount} ETH<br>Date: ${t.timestamp}</p>`).join('<hr>');
+			} catch (error) {
+				console.error(error);
+				document.getElementById('status').innerText = 'Failed to get transfer history';
+			}
+		}
+
+		async function getAllTransferHistory() {
+			const user = document.getElementById('allTransferHistoryUser').value;
+			try {
+				const history = await contract.methods.getAllTransferHistory(user).call();
+				const formattedHistory = history.map(transfer => ({
+					sender: transfer.sender,
+					receiver: transfer.receiver,
+					amount: web3.utils.fromWei(transfer.amount, 'ether'),
+					timestamp: new Date(transfer.timestamp * 1000).toLocaleString()
+				}));
+				document.getElementById('status').innerHTML = '<h3>All Transfer History:</h3>' +
+					formattedHistory.map(t => `<p>From: ${t.sender}<br>To: ${t.receiver}<br>Amount: ${t.amount} ETH<br>Date: ${t.timestamp}</p>`).join('<hr>');
+			} catch (error) {
+				console.error(error);
+				document.getElementById('status').innerText = 'Failed to get all transfer history';
+			}
+		}
+
+		async function getTransferDetails() {
+			const user = document.getElementById('transferDetailsUser').value;
+			const index = document.getElementById('transferDetailsIndex').value;
+			try {
+				const details = await contract.methods.getTransferDetails(user, index).call();
+				const formattedDetails = {
+					sender: details.sender,
+					receiver: details.receiver,
+					amount: web3.utils.fromWei(details.amount, 'ether'),
+					timestamp: new Date(details.timestamp * 1000).toLocaleString()
+				};
+				document.getElementById('status').innerHTML = '<h3>Transfer Details:</h3>' +
+					`<p>From: ${formattedDetails.sender}<br>To: ${formattedDetails.receiver}<br>Amount: ${formattedDetails.amount} ETH<br>Date: ${formattedDetails.timestamp}</p>`;
+			} catch (error) {
+				console.error(error);
+				document.getElementById('status').innerText = 'Failed to get transfer details';
+			}
+		}
+
+		async function getTotalTransactionAmount() {
+			const sender = document.getElementById('totalAmountSender').value;
+			const receiver = document.getElementById('totalAmountReceiver').value;
+			try {
+				const amount = await contract.methods.getTotalTransactionAmount(sender, receiver).call();
+				const formattedAmount = web3.utils.fromWei(amount, 'ether');
+				document.getElementById('status').innerHTML = '<h3>Total Transaction Amount:</h3>' +
+					`<p>From: ${sender}<br>To: ${receiver}<br>Total Amount: ${formattedAmount} ETH</p>`;
+			} catch (error) {
+				console.error(error);
+				document.getElementById('status').innerText = 'Failed to get total transaction amount';
+			}
+		}
+		async function pauseContract() {
+			const accounts = await web3.eth.getAccounts();
+			try {
+				await contract.methods.pause().send({ from: accounts[0] });
+				document.getElementById('status').innerText = 'Contract paused successfully';
+			} catch (error) {
+				console.error(error);
+				document.getElementById('status').innerText = 'Failed to pause contract: ' + error.message;
+			}
+		}
+
+		async function unpauseContract() {
+			const accounts = await web3.eth.getAccounts();
+			try {
+				await contract.methods.unpause().send({ from: accounts[0] });
+				document.getElementById('status').innerText = 'Contract unpaused successfully';
+			} catch (error) {
+				console.error(error);
+				document.getElementById('status').innerText = 'Failed to unpause contract: ' + error.message;
+			}
+		}
+
+		$('.btn').click(function(){
+           $(this).toggleClass("click");
+           $('.sidebar').toggleClass("show");
+         });
+         $('.feat-btn').click(function(){
+           $('nav ul .feat-show').toggleClass("show");
+           $('nav ul .first').toggleClass("rotate");
+         });
+         $('.serv-btn').click(function(){
+           $('nav ul .serv-show').toggleClass("show1");
+           $('nav ul .second').toggleClass("rotate");
+         });
+         $('nav ul li').click(function(){
+           $(this).addClass("active").siblings().removeClass("active");
+         });
+         
+         // Function to show the correct section and hide others
+         function showSection(sectionId) {
+           const sections = document.querySelectorAll('.section');
+           sections.forEach(section => section.classList.add('hidden-section'));
+           document.getElementById(sectionId).classList.remove('hidden-section');
+         }
+	</script>
+</body>
+
+</html>

@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Interest</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/gh/ethereum/web3.js/dist/web3.min.js"></script>
+  <style>
+    .hidden-section h3 {
+      font-size: 2.5em;
+    }
+
+    .hidden-section {
+      display: none;
+      opacity: 0;
+      transition: opacity 0.5s ease;
+      /* Smooth transition */
+      background-color: rgb(255, 255, 255, 0.2);
+    }
+
+    main {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding-top: 100px;
+    }
+
+    .hidden-section {
+      margin: 20px 0;
+      padding: 20px;
+      border: 1px solid #f2f2f2;
+      border-radius: 30px;
+      width: 60%;
+      box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    form {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    button,
+    input {
+      margin: 10px 0;
+    }
+
+    #withdrawalHistoryTable {
+      margin: 20px auto;
+      width: 50%;
+      table-layout: fixed;
+      border-collapse: collapse;
+    }
+
+    #withdrawalHistoryTable th,
+    #withdrawalHistoryTable td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: center;
+      width: 20%;
+    }
+
+    #withdrawalHistoryTable th {
+      background-color: #f2f2f2;
+      font-weight: bold;
+    }
+
+    input {
+      width: 50%;
+      height: 30px;
+      padding: 30px 50px;
+      margin-bottom: 10px;
+      border: 1px solid #ccc;
+      border-radius: 30px;
+      /* background: #fafcff; */
+      box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.2);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+      font-size: larger;
+
+      &::-webkit-file-upload-button {
+        padding: 6px;
+        border-radius: 20px;
+        border: 1px solid #ccc;
+        background: linear-gradient(to bottom right, #f7fbff, #ccd1d8);
+        cursor: pointer;
+      }
+    }
+
+    button {
+      font-size: 1em;
+      padding: 15px 30px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 30px;
+      cursor: pointer;
+      box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.2);
+      transition: background-color 0.3s ease-in-out;
+      margin: 5px;
+    }
+
+    button:hover {
+      background: linear-gradient(to bottom right, rgb(29, 4, 90), #0d56a5);
+    }
+
+    button[type=button] {
+      border-radius: 20px;
+    }
+
+    .AmountBtn button {
+      width: 15%;
+    }
+
+    /* History Table Format -- Start */
+    .history-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 20px;
+    }
+
+    .history-table th,
+    .history-table td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: left;
+    }
+
+    .history-table th {
+      /* background-color: #f2f2f2; */
+      color: black;
+      background-color: #b8f9ff;
+    }
+
+    .history-table tr:nth-child(even) {
+      background-color: #b8f9ff;
+    }
+
+    .history-table tr:hover {
+      background-color: #ddd;
+    }
+
+    /* History Table Format --End */
+    /* Showing first item */
+    #interestAccountInfo {
+      display: block;
+      opacity: 1;
+      transition: opacity 0.5s ease;
+      /* Smooth transition */
+      background-color: rgb(255, 255, 255, 0.2);
+    }
+
+    select {
+      width: 30%;
+      /* Increase width */
+      height: 50px;
+      /* Increase height */
+      padding: 10px 15px;
+      /* Adjust padding for better aesthetics */
+      margin-bottom: 10px;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      /* Optional: Adjust border radius */
+      box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.2);
+      font-size: larger;
+      /* Increase font size if needed */
+    }
+    #account2,#account3{
+      display: none;
+    }
+  </style>
+</head>
+
+<body onload="connectWallet(),refreshAccountInfo()">
+  <header class="site-navbar" role="banner">
+    <div id="account2" , id="account3"></div>
+
+    <div class="container">
+      <div class="row align-items-center">
+
+        <div class="col-11 col-xl-2">
+          <h1 class="mb-0 site-logo"><a href="main.html" class="text-white mb-0"><b
+                style="color: yellow;">Bee</b>Wallet</a></h1>
+        </div>
+        <div class="col-12 col-md-10 d-none d-xl-block">
+          <nav class="site-navigation position-relative text-right" role="navigation">
+
+            <ul class="site-menu js-clone-nav mr-auto d-none d-lg-block">
+              <li><a href="main.html"><span>Home</span></a></li>
+              <li><a href="AccountInfo.html"><span>Account Info</span></a></li>
+              <li class="has-children">
+                <a href="#"><span>Deposit And Withdrawals</span></a>
+                <ul class="dropdown arrow-top">
+                  <li onclick="showSection('addFundsSection')"><a href="DepositAndWithdraw.html">Deposit</a></li>
+                  <li onclick="showSection('instantWithdrawSection')"><a href="DepositAndWithdraw.html">Instant
+                      Withdrawals</a></li>
+                  <li onclick="showSection('listWithdrawalsSection')"><a href="DepositAndWithdraw.html">List
+                      Withdrawals</a></li>
+                  <li class="has-children">
+                    <a href="#">Withdrawals</a>
+                    <ul class="dropdown">
+                      <li onclick="showSection('listScheduledSection')">
+                        <a href="DepositAndWithdraw.html">List Scheduled Withdrawals</a>
+                      </li>
+                      <li onclick="showSection('scheduleWithdrawSection')"><a href="DepositAndWithdraw.html">Schedule
+                          Withdrawals</a></li>
+                      <li onclick="showSection('executeWithdrawSection')"><a href="DepositAndWithdraw.html">Execute
+                          Withdrawals</a></li>
+                      <li onclick="showSection('cancelWithdrawal')"><a href="DepositAndWithdraw.html">Cancel
+                          Withdrawals</a></li>
+                      <li onclick="showSection('childScheduleWithdraw')"><a href="DepositAndWithdraw.html">Schedule
+                          Withdrawals For Child</a></li>
+                    </ul>
+                  </li>
+                </ul>
+              </li>
+              <li class="has-children">
+                <a href="#"><span>Transaction</span></a>
+                <ul class="dropdown arrow-top">
+                  <li onclick="showSection('instantTransferSection')"><a href="Transaction.html">Instant Transfer</a>
+                  </li>
+                  <li class="has-children">
+                    <a href="#">Scheduled Transfers</a>
+                    <ul class="dropdown">
+                      <li onclick="showSection('scheduleAutoExecution')"><a href="Transaction.html">Schedule Auto
+                          Execution</a></li>
+                      <li onclick="showSection('getAllScheduledTransfers')"><a href="Transaction.html">Get All Scheduled
+                          Transfers</a></li>
+                      <li onclick="showSection('cancelScheduledTransfer')"><a href="Transaction.html">Cancel Scheduled
+                          Transfer</a></li>
+                    </ul>
+                  </li>
+                  <li class="has-children">
+                    <a href="#">Transfer History</a>
+                    <ul class="dropdown">
+                      <li onclick="showSection('transferHistory')"><a href="Transaction.html">Transfer History</a></li>
+                      <li onclick="showSection('getAllTransferHistory')"><a href="Transaction.html">All Transfer
+                          History</a></li>
+                      <li onclick="showSection('transferDetails')"><a href="Transaction.html">Transfer Details</a></li>
+                      <li onclick="showSection('getTotalTransactionAmount')"><a href="Transaction.html">Total
+                          Transaction Amount</a></li>
+                    </ul>
+                  </li>
+                </ul>
+              </li>
+              <li class="has-children active">
+
+                <a href="#"><span>Interest</span></a>
+                <ul class="dropdown arrow-top">
+                  <li onclick="showSection('interestAccountInfo')"><a href="#">Interest Account</a></li>
+                  <li onclick="showSection('interestIntervalAdjustment')"><a href="#">Interest Interval Adjustment</a>
+                  </li>
+                  <li class="has-children">
+                    <a href="#">Interest Withdrawal</a>
+                    <ul class="dropdown">
+                      <li onclick="showSection('addInterest')">
+                        <a href="#">Add Interest</a>
+                      </li>
+                      <li onclick="showSection('withdrawInterest')"><a href="#">Withdraw Interest</a></li>
+                      <li onclick="showSection('distributeInterest')"><a href="#">Distribute Interest</a></li>
+                    </ul>
+                  </li>
+                  <li onclick="showSection('interestCalculator')"><a href="#">Interest Calculator</a></li>
+                  <li onclick="showSection('interestHistory')"><a href="#">Interest History</a></li>
+                </ul>
+              </li>
+              <li><a href="Reward.html"><span>Reward</span></a></li>
+            </ul>
+          </nav>
+        </div>
+
+      </div>
+
+    </div>
+    </div>
+    <img src="images/metalogo.png" alt="logo" id="connecLogo" height="40px" width="40px">
+    <input type="text" name="address" id="navAddress" disabled
+      style="position:absolute;  right: 20px; top: 0px; padding: 10px; border-radius: 20px; color: white; font-weight: bold; width: 6%; font-size: 13px;">
+  </header>
+  <main>
+    <div id="interestAccountInfo" class="hidden-section">
+
+      <h2>Account Information</h2>
+      <p style="font-weight: bold; margin: 0; font-size: larger;">Connected Account: <span id="account"
+          style="font-weight: normal; margin: 0; font-size: smaller;">N/A</span></p>
+
+      <p style="font-weight: bold; margin: 0; font-size: larger;">Account Balance: <span id="account-balance"
+          style="font-weight: normal; margin: 0; font-size: smaller;" class="balanceResult">0 ETH</span></p>
+      <!-- Changed from account-balances -->
+      <p style="font-weight: bold; margin: 0; font-size: larger;">Accrual Interval: <span class="accrual-interval"
+          style="font-weight: normal; margin: 0; font-size: smaller;">N/A</span></p>
+      <p style="font-weight: bold; margin: 0; font-size: larger;">Interest Rate: <span class="interest-rate"
+          style="font-weight: normal; margin: 0; font-size: smaller;">0%</span></p>
+
+      <button id="refresh-account-info" onclick="refreshAccountInfo()">Refresh Account Info</button>
+      <!-- Changed from refreshAccountInfo -->
+    </div>
+
+    <!-- Interest Calculator -->
+    <div id="interestCalculator" class="hidden-section">
+      <h3>Interest Calculator</h3>
+      <label for="calc-amount" style="font-weight: bold; margin: 0; font-size: larger;">Amount (ETH):</label>
+      <input type="number" id="calc-amount" placeholder="Amount in ETH">
+      <label for="startTime" style="font-weight: bold; margin: 0; font-size: larger;">Start Date:</label>
+      <input type="datetime-local" id="startTime" name="startTime">
+      <label for="endTime" style="font-weight: bold; margin: 0; font-size: larger;">End Date:</label>
+      <input type="datetime-local" id="endTime" name="endTime">
+      <button id="calculate-interest" onclick="calculateInterest()">Calculate Interest</button>
+      <p style="font-weight: bold; margin: 0; font-size: larger;">Interest (Testing): <span id="interest-test"
+          style="font-weight: normal; margin: 0; font-size: smaller;">0 ETH</span></p>
+      <p style="font-weight: bold; margin: 0; font-size: larger;">Interest (Monthly): <span id="interest-month"
+          style="font-weight: normal; margin: 0; font-size: smaller;">0 ETH</span></p>
+      <p style="font-weight: bold; margin: 0; font-size: larger;">Interest (Yearly): <span id="interest-year"
+          style="font-weight: normal; margin: 0; font-size: smaller;">0 ETH</span></p>
+    </div>
+
+    <!-- Add Interest -->
+    <div id="addInterest" class="hidden-section">
+      <h2>Account Information</h2>
+      <p style="font-weight: bold; margin: 0; font-size: larger;">Account Balance: <span id="account-balance"
+          style="font-weight: normal; margin: 0; font-size: smaller;" class="balanceResult">0 ETH</span></p>
+      <!-- Keep same id as above -->
+      <p style="font-weight: bold; margin: 0; font-size: larger;">Accrual Interval: <span class="accrual-interval"
+          style="font-weight: normal; margin: 0; font-size: smaller;">Unknown</span></p>
+      <p style="font-weight: bold; margin: 0; font-size: larger;">Interest Rate: <span class="interest-rate"
+          style="font-weight: normal; margin: 0; font-size: smaller;">0%</span></p>
+      <button id="refresh-account" onclick="refreshAccountInfo()"">Refresh Account Info</button>
+
+      <h3>Add Interest</h3>
+      <button id="add-interest" onclick="addInterest()">Add Interest</button>
+      <p style="font-weight: bold; margin: 0; font-size: larger;">Status: <span id="add-interest-status"
+          style="font-weight: normal; margin: 0; font-size: smaller;">Not added yet</span></p>
+    </div>
+
+    <!-- Withdraw Interest -->
+    <div id="withdrawInterest" class="hidden-section">
+      <h2>Account Information</h2>
+      <p style="font-weight: bold; margin: 0; font-size: larger;">Account Balance: <span id="account-balance"
+          style="font-weight: normal; margin: 0; font-size: smaller;" class="balanceResult">0 ETH</span></p>
+      <!-- Keep same id as above -->
+      <p style="font-weight: bold; margin: 0; font-size: larger;">Accrual Interval: <span class="accrual-interval"
+          style="font-weight: normal; margin: 0; font-size: smaller;">Unknown</span></p>
+      <p style="font-weight: bold; margin: 0; font-size: larger;">Interest Rate: <span class="interest-rate"
+          style="font-weight: normal; margin: 0; font-size: smaller;">0%</span></p>
+      <button id="refresh-account" onclick="refreshAccountInfo()">Refresh Account Info</button>
+
+      <h3>Withdraw Interest</h3>
+      <button id="withdraw-interest" onclick="withdrawInterest()">Withdraw Interest</button>
+      <p style="font-weight: bold; margin: 0; font-size: larger;">Status: <span id="withdraw-interest-status"
+          style="font-weight: normal; margin: 0; font-size: smaller;">Not withdrawn yet</span></p>
+    </div>
+
+    <!-- Distribute Interest -->
+    <div id="distributeInterest" class="hidden-section">
+      <h2>Account Information</h2>
+      <p style="font-weight: bold; margin: 0; font-size: larger;">Account Balance: <span id="account-balance"
+          style="font-weight: normal; margin: 0; font-size: smaller;" class="balanceResult">0 ETH</span></p>
+      <!-- Keep same id as above -->
+      <p style="font-weight: bold; margin: 0; font-size: larger;">Accrual Interval: <span class="accrual-interval"
+          style="font-weight: normal; margin: 0; font-size: smaller;">Unknown</span></p>
+      <p style="font-weight: bold; margin: 0; font-size: larger;">Interest Rate: <span class="interest-rate"
+          style="font-weight: normal; margin: 0; font-size: smaller;">0%</span></p>
+      <button id="refresh-account" onclick="refreshAccountInfo()">Refresh Account Info</button>
+
+      <h2>Distribute Interest</h2>
+      <label for="Recipient-Address" style="font-weight: bold; margin: 0; font-size: larger;">Recipient Address
+        :</label>
+      <input type="text" id="Recipient-Address" placeholder="Distribute To Address">
+      <label for="distribute-Percentage" style="font-weight: bold; margin: 0; font-size: larger;">Distribute
+        Percentage(%) :</label>
+      <input type="number" id="distribute-percentage" min="1" max="100" placeholder="Percentage to distribute">
+      <!-- Changed distribute-Percentage to distribute-percentage -->
+
+      <button id="distribute-interest" onclick="distributeInterest()">Distribute Interest</button> <!-- Changed from distributeInterest -->
+      <p style="font-weight: bold; margin: 0; font-size: larger;">Status: <span id="distribute-interest-status"
+          style="font-weight: normal; margin: 0; font-size: smaller;">Not distributed yet</span></p>
+      <!-- Changed from withdraw-interest-status -->
+    </div>
+
+    <!-- Change Interval -->
+    <div id="interestIntervalAdjustment" class="hidden-section">
+      <h2>Change Accrual Interval</h2>
+      <label for="interval-select" style="font-weight: bold; margin: 0; font-size: larger;">Choose Interval:</label>
+      <select id="interval-select">
+        <option value="2592000">Monthly</option>
+        <option value="31536000">Yearly</option>
+        <option value="30">Testing (30s)</option>
+      </select>
+      <button id="change-interval" onclick="changeAccrualInterval()">Change Interval</button>
+      <p style="font-weight: bold; margin: 0; font-size: larger;">Status: <span id="change-interval-status"
+          style="font-weight: normal; margin: 0; font-size: smaller;">Interval not changed yet</span></p>
+    </div>
+
+    <!-- Interest Histories -->
+    <div id="interestHistory" class="hidden-section">
+      <h2>Interest Histories</h2>
+      <button id="fetch-history" onclick="getInterestHistory()">Fetch History</button>
+
+      <!-- Withdrawal History Section -->
+      <h2>Withdrawal History</h2>
+      <table id="withdrawal-history-table" class="history-table">
+        <thead>
+          <tr>
+            <th>Date & Time</th>
+            <th>Interest Amount (ETH)</th>
+            <th>Recipient</th>
+          </tr>
+        </thead>
+        <tbody id="withdrawal-history"></tbody>
+      </table>
+
+      <!-- Add Interest History Section -->
+      <h2>Add Interest History</h2>
+      <table id="add-interest-history-table" class="history-table">
+        <thead>
+          <tr>
+            <th>Date & Time</th>
+            <th>Interest Amount (ETH)</th>
+            <th>Recipient</th>
+          </tr>
+        </thead>
+        <tbody id="add-interest-history"></tbody>
+      </table>
+
+      <!-- Distribution History Section -->
+      <h2>Distribution History</h2>
+      <table id="distribution-history-table" class="history-table">
+        <thead>
+          <tr>
+            <th>Date & Time</th>
+            <th>Interest Amount (ETH)</th>
+            <th>Recipient</th>
+          </tr>
+        </thead>
+        <tbody id="distribution-history"></tbody>
+      </table>
+    </div>
+
+  </main>
+
+<script src="script.js"></script>
+  
+</body>
+
+</html>

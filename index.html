@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Transaction Contract UI</title>
+	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/web3/1.2.7-rc.0/web3.min.js"></script>
+</head>
+
+<body>
+	<h1>Transaction Contract</h1>
+
+	<!-- Connect to MetaMask -->
+	<br>
+
+	<button onclick="accessToMetamask()">Connect Metamask</button> <br>
+
+	<p id="accountArea"></p>
+
+	<br>
+
+	<button onclick="accessToContract()">Connect to Smart Contract</button> <br>
+
+	<p id="contractArea"></p>
+
+	<br>
+
+	<!-- Add Funds -->
+	<h2>Add Funds</h2>
+	<input type="number" id="fundAmount" placeholder="Enter amount in Ether">
+	<button id="addFunds">Add Funds</button>
+
+	<!-- Check Balance -->
+	<h2>Check Balance</h2>
+	<input type="text" id="balanceAccount" placeholder="Enter account address">
+	<button id="checkBalance">Check Balance</button>
+	<p id="balance"></p>
+
+
+	<!-- Instant Transfer -->
+	<h2>Instant Transfer</h2>
+	<input type="text" id="transferTo" placeholder="Recipient address">
+	<input type="number" id="transferAmount" placeholder="Enter amount in Ether">
+	<button id="instantTransfer">Transfer Now</button>
+
+	<!-- List Scheduled Transfers -->
+	<h2>List Scheduled Transfers</h2>
+	<button id="listScheduledTransfers">List Scheduled Transfers</button>
+	<div id="scheduledTransfersList"></div>
+
+	<!-- Schedule Transfer -->
+	<h2>Schedule Transfer</h2>
+	<input type="text" id="scheduleTransferTo" placeholder="Recipient address">
+	<input type="number" id="scheduleTransferAmount" placeholder="Enter amount in Ether">
+	<input type="number" id="transferTimePeriod" placeholder="Time period in seconds">
+	<button id="scheduleTransfer">Schedule Transfer</button>
+
+	<!-- Cancel Scheduled Transfer -->
+	<h2>Cancel Scheduled Transfer</h2>
+	<input type="number" id="cancelTransferIndex" placeholder="Enter index of transfer">
+	<button id="cancelTransfer">Cancel Scheduled Transfer</button>
+
+	<!-- Execute Scheduled Transfer -->
+	<h2>Execute Scheduled Transfer</h2>
+	<input type="number" id="executeTransferIndex" placeholder="Enter index of transfer">
+	<button id="executeTransfer">Execute Scheduled Transfer</button>
+
+	<h2>Deposit</h2>
+	<input type="text" id="depositReceiver" placeholder="Receiver address">
+	<input type="number" id="depositAmount" placeholder="Enter amount in Ether">
+	<button id="deposit">Deposit</button>
+
+	<!-- Get Total Transaction Amount -->
+	<h2>Get Total Transaction Amount</h2>
+	<input type="text" id="senderAddress" placeholder="Sender address">
+	<input type="text" id="receiverAddress" placeholder="Receiver address">
+	<button id="getTotalTransactionAmount">Get Total Amount</button>
+	<p id="totalTransactionAmount"></p>
+	<!-- Get Transfer Details -->
+	<h2>Get Transfer Details</h2>
+	<input type="text" id="transferUser" placeholder="User address">
+	<input type="number" id="transferIndex" placeholder="Transfer index">
+	<button id="getTransferDetails">Get Transfer Details</button>
+	<p id="transferDetails"></p>
+
+	<!-- Get Contract Balance -->
+	<h2>Get Contract Balance</h2>
+	<button id="getContractBalance">Get Contract Balance</button>
+	<p id="contractBalance"></p>
+
+	<script>
+		//1- connect metamask
+		let account;
+		const accessToMetamask = async () => {
+			if (window.ethereum !== "undefined") {
+				const accounts = await ethereum.request({ method: "eth_requestAccounts" });
+				account = accounts[0];
+				document.getElementById("accountArea").innerHTML = account;
+			}
+
+		}
+
+		//2- connect to smart contract
+		const accessToContract = async () => {
+			const ABI = [
+				{
+					"inputs": [
+						{
+							"internalType": "uint256",
+							"name": "_amount",
+							"type": "uint256"
+						}
+					],
+					"name": "addFunds",
+					"outputs": [],
+					"stateMutability": "payable",
+					"type": "function"
+				},
+				{
+					"inputs": [
+						{
+							"internalType": "address",
+							"name": "_to",
+							"type": "address"
+						},
+						{
+							"internalType": "uint256",
+							"name": "_amount",
+							"type": "uint256"
+						},
+						{
+							"internalType": "uint256",
+							"name": "_timePeriod",
+							"type": "uint256"
+						}
+					],
+					"name": "addScheduledTransfer",
+					"outputs": [],
+					"stateMutability": "nonpayable",
+					"type": "function"
+				},
+				{
+					"inputs": [
+						{
+							"internalType": "uint256",
+							"name": "_index",
+							"type": "uint256"
+						}
+					],
+					"name": "cancelScheduledTransfer",
+					"outputs": [],
+					"stateMutability": "nonpayable",
+					"type": "function"
+				},
+				{
+					"constant": false,
+					"inputs": [
+						{
+							"name": "_index",
+							"type": "uint256"
+						}
+					],
+					"name": "executeScheduledTransfer",
+					"outputs": [],
+					"payable": false,
+					"stateMutability": "nonpayable",
+					"type": "function"
+				},
+				{
+					"anonymous": false,
+					"inputs": [
+						{
+							"indexed": true,
+							"internalType": "address",
+							"name": "account",
+							"type": "address"
+						},
+						{
+							"indexed": false,
+							"internalType": "uint256",
+							"name": "amount",
+							"type": "uint256"
+						}
+					],
+					"name": "FundsAdded",
+					"type": "event"
+				},
+				{
+					"inputs": [
+						{
+							"internalType": "address",
+							"name": "_to",
+							"type": "address"
+						},
+						{
+							"internalType": "uint256",
+							"name": "_amount",
+							"type": "uint256"
+						}
+					],
+					"name": "instantTransfer",
+					"outputs": [],
+					"stateMutability": "nonpayable",
+					"type": "function"
+				},
+				{
+					"anonymous": false,
+					"inputs": [
+						{
+							"indexed": true,
+							"internalType": "address",
+							"name": "sender",
+							"type": "address"
+						},
+						{
+							"indexed": false,
+							"internalType": "uint256",
+							"name": "amount",
+							"type": "uint256"
+						},
+						{
+							"indexed": false,
+							"internalType": "uint256",
+							"name": "index",
+							"type": "uint256"
+						}
+					],
+					"name": "ScheduledTransferCancelled",
+					"type": "event"
+				},
+				{
+					"anonymous": false,
+					"inputs": [
+						{
+							"indexed": true,
+							"internalType": "address",
+							"name": "sender",
+							"type": "address"
+						},
+						{
+							"indexed": true,
+							"internalType": "address",
+							"name": "receiver",
+							"type": "address"
+						},
+						{
+							"indexed": false,
+							"internalType": "uint256",
+							"name": "amount",
+							"type": "uint256"
+						},
+						{
+							"indexed": false,
+							"internalType": "uint256",
+							"name": "unlockTime",
+							"type": "uint256"
+						}
+					],
+					"name": "ScheduledTransferCreated",
+					"type": "event"
+				},
+				{
+					"anonymous": false,
+					"inputs": [
+						{
+							"indexed": true,
+							"internalType": "address",
+							"name": "sender",
+							"type": "address"
+						},
+						{
+							"indexed": true,
+							"internalType": "address",
+							"name": "receiver",
+							"type": "address"
+						},
+						{
+							"indexed": false,
+							"internalType": "uint256",
+							"name": "amount",
+							"type": "uint256"
+						},
+						{
+							"indexed": false,
+							"internalType": "uint256",
+							"name": "index",
+							"type": "uint256"
+						}
+					],
+					"name": "ScheduledTransferExecuted",
+					"type": "event"
+				},
+				{
+					"anonymous": false,
+					"inputs": [
+						{
+							"indexed": true,
+							"internalType": "address",
+							"name": "sender",
+							"type": "address"
+						},
+						{
+							"indexed": true,
+							"internalType": "address",
+							"name": "receiver",
+							"type": "address"
+						},
+						{
+							"indexed": false,
+							"internalType": "uint256",
+							"name": "amount",
+							"type": "uint256"
+						}
+					],
+					"name": "TransferExecuted",
+					"type": "event"
+				},
+				{
+					"inputs": [
+						{
+							"internalType": "address",
+							"name": "",
+							"type": "address"
+						}
+					],
+					"name": "accounts",
+					"outputs": [
+						{
+							"internalType": "uint256",
+							"name": "balance",
+							"type": "uint256"
+						}
+					],
+					"stateMutability": "view",
+					"type": "function"
+				},
+				{
+					"inputs": [
+						{
+							"internalType": "address",
+							"name": "_account",
+							"type": "address"
+						}
+					],
+					"name": "checkBalance",
+					"outputs": [
+						{
+							"internalType": "uint256",
+							"name": "",
+							"type": "uint256"
+						}
+					],
+					"stateMutability": "view",
+					"type": "function"
+				},
+				{
+					"inputs": [
+						{
+							"internalType": "address",
+							"name": "_user",
+							"type": "address"
+						}
+					],
+					"name": "getAllTransferHistory",
+					"outputs": [
+						{
+							"components": [
+								{
+									"internalType": "address",
+									"name": "sender",
+									"type": "address"
+								},
+								{
+									"internalType": "address",
+									"name": "receiver",
+									"type": "address"
+								},
+								{
+									"internalType": "uint256",
+									"name": "amount",
+									"type": "uint256"
+								},
+								{
+									"internalType": "uint256",
+									"name": "timestamp",
+									"type": "uint256"
+								}
+							],
+							"internalType": "struct Transaction.TransferRecord[]",
+							"name": "",
+							"type": "tuple[]"
+						}
+					],
+					"stateMutability": "view",
+					"type": "function"
+				},
+				{
+					"inputs": [
+						{
+							"internalType": "address",
+							"name": "_sender",
+							"type": "address"
+						},
+						{
+							"internalType": "address",
+							"name": "_receiver",
+							"type": "address"
+						}
+					],
+					"name": "getTotalTransactionAmount",
+					"outputs": [
+						{
+							"internalType": "uint256",
+							"name": "",
+							"type": "uint256"
+						}
+					],
+					"stateMutability": "view",
+					"type": "function"
+				},
+				{
+					"inputs": [
+						{
+							"internalType": "address",
+							"name": "_user",
+							"type": "address"
+						},
+						{
+							"internalType": "uint256",
+							"name": "_index",
+							"type": "uint256"
+						}
+					],
+					"name": "getTransferDetails",
+					"outputs": [
+						{
+							"internalType": "address",
+							"name": "sender",
+							"type": "address"
+						},
+						{
+							"internalType": "address",
+							"name": "receiver",
+							"type": "address"
+						},
+						{
+							"internalType": "uint256",
+							"name": "amount",
+							"type": "uint256"
+						},
+						{
+							"internalType": "uint256",
+							"name": "timestamp",
+							"type": "uint256"
+						}
+					],
+					"stateMutability": "view",
+					"type": "function"
+				},
+				{
+					"inputs": [
+						{
+							"internalType": "address",
+							"name": "_user1",
+							"type": "address"
+						},
+						{
+							"internalType": "address",
+							"name": "_user2",
+							"type": "address"
+						}
+					],
+					"name": "getTransferHistory",
+					"outputs": [
+						{
+							"components": [
+								{
+									"internalType": "address",
+									"name": "sender",
+									"type": "address"
+								},
+								{
+									"internalType": "address",
+									"name": "receiver",
+									"type": "address"
+								},
+								{
+									"internalType": "uint256",
+									"name": "amount",
+									"type": "uint256"
+								},
+								{
+									"internalType": "uint256",
+									"name": "timestamp",
+									"type": "uint256"
+								}
+							],
+							"internalType": "struct Transaction.TransferRecord[]",
+							"name": "",
+							"type": "tuple[]"
+						}
+					],
+					"stateMutability": "view",
+					"type": "function"
+				},
+				{
+					"inputs": [
+						{
+							"internalType": "address",
+							"name": "_account",
+							"type": "address"
+						}
+					],
+					"name": "listScheduledTransfers",
+					"outputs": [
+						{
+							"components": [
+								{
+									"internalType": "address",
+									"name": "sender",
+									"type": "address"
+								},
+								{
+									"internalType": "address",
+									"name": "receiver",
+									"type": "address"
+								},
+								{
+									"internalType": "uint256",
+									"name": "amount",
+									"type": "uint256"
+								},
+								{
+									"internalType": "uint256",
+									"name": "unlockTime",
+									"type": "uint256"
+								},
+								{
+									"internalType": "bool",
+									"name": "active",
+									"type": "bool"
+								}
+							],
+							"internalType": "struct Transaction.ScheduledTransfer[]",
+							"name": "",
+							"type": "tuple[]"
+						}
+					],
+					"stateMutability": "view",
+					"type": "function"
+				},
+				{
+					"inputs": [
+						{
+							"internalType": "address",
+							"name": "",
+							"type": "address"
+						},
+						{
+							"internalType": "uint256",
+							"name": "",
+							"type": "uint256"
+						}
+					],
+					"name": "scheduledTransfers",
+					"outputs": [
+						{
+							"internalType": "address",
+							"name": "sender",
+							"type": "address"
+						},
+						{
+							"internalType": "address",
+							"name": "receiver",
+							"type": "address"
+						},
+						{
+							"internalType": "uint256",
+							"name": "amount",
+							"type": "uint256"
+						},
+						{
+							"internalType": "uint256",
+							"name": "unlockTime",
+							"type": "uint256"
+						},
+						{
+							"internalType": "bool",
+							"name": "active",
+							"type": "bool"
+						}
+					],
+					"stateMutability": "view",
+					"type": "function"
+				},
+				{
+					"inputs": [
+						{
+							"internalType": "address",
+							"name": "",
+							"type": "address"
+						},
+						{
+							"internalType": "uint256",
+							"name": "",
+							"type": "uint256"
+						}
+					],
+					"name": "transferHistory",
+					"outputs": [
+						{
+							"internalType": "address",
+							"name": "sender",
+							"type": "address"
+						},
+						{
+							"internalType": "address",
+							"name": "receiver",
+							"type": "address"
+						},
+						{
+							"internalType": "uint256",
+							"name": "amount",
+							"type": "uint256"
+						},
+						{
+							"internalType": "uint256",
+							"name": "timestamp",
+							"type": "uint256"
+						}
+					],
+					"stateMutability": "view",
+					"type": "function"
+				}
+			];
+
+			const Address = "0x41084AEa45611AAD5B6Eb9bB916fAf61cF72ea30";
+			window.web3 = await new Web3(window.ethereum); //how to access to smart contract
+
+			window.contract = await new window.web3.eth.Contract(ABI, Address); //how you create an instance of that contract by using the abi and address
+
+			document.getElementById("contractArea").innerHTML = "connected to Transaction smart contract";
+		}
+
+		// Add Funds
+		document.getElementById('addFunds').onclick = async () => {
+			const accounts = await web3.eth.getAccounts();
+			const amount = document.getElementById('fundAmount').value;
+			await contract.methods.addFunds(web3.utils.toWei(amount, "ether")).send({ from: accounts[0], value: web3.utils.toWei(amount, "ether") });
+		};
+
+		// Check Balance
+		document.getElementById('checkBalance').onclick = async () => {
+			const account = document.getElementById('balanceAccount').value;
+			const balance = await contract.methods.checkBalance(account).call();
+			document.getElementById('balance').innerText = `Balance: ${web3.utils.fromWei(balance, "ether")} Ether`;
+		};
+
+		// Instant Transfer
+		document.getElementById('instantTransfer').onclick = async () => {
+			const accounts = await web3.eth.getAccounts();
+			const to = document.getElementById('transferTo').value;
+			const amount = document.getElementById('transferAmount').value;
+			await contract.methods.instantTransfer(to, web3.utils.toWei(amount, "ether")).send({ from: accounts[0] });
+		};
+
+		// Schedule Transfer
+		document.getElementById('scheduleTransfer').onclick = async () => {
+			const accounts = await web3.eth.getAccounts();
+			const to = document.getElementById('scheduleTransferTo').value;
+			const amount = document.getElementById('scheduleTransferAmount').value;
+			const timePeriod = document.getElementById('transferTimePeriod').value;
+			try {
+				await contract.methods.addScheduledTransfer(
+					to,  // Add this line
+					web3.utils.toWei(amount, "ether"),
+					timePeriod
+				).send({ from: accounts[0] });
+				alert("Transfer scheduled successfully!");
+			} catch (error) {
+				console.error("Error scheduling transfer:", error);
+				alert("Error scheduling transfer. Check console for details.");
+			}
+		};
+
+		// List Scheduled Transfers
+		document.getElementById('listScheduledTransfers').onclick = async () => {
+			try {
+				const accounts = await web3.eth.getAccounts();
+				const scheduledTransfers = await contract.methods.listScheduledTransfers(accounts[0]).call();
+
+				let output = "<ul>";
+				for (let i = 0; i < scheduledTransfers.length; i++) {
+					const transfer = scheduledTransfers[i];
+					output += `<li>Index: ${i}, To: ${transfer.receiver}, Amount: ${web3.utils.fromWei(transfer.amount, "ether")} Ether, Unlock Time: ${new Date(transfer.unlockTime * 1000).toLocaleString()}, Active: ${transfer.active}</li>`;
+				}
+				output += "</ul>";
+				document.getElementById('scheduledTransfersList').innerHTML = output;
+			} catch (error) {
+				console.error("Error listing scheduled transfers:", error);
+				document.getElementById('scheduledTransfersList').innerHTML = "Error listing scheduled transfers. Check console for details.";
+			}
+		};
+
+		// Cancel Scheduled Transfer
+		document.getElementById('cancelTransfer').onclick = async () => {
+			const accounts = await web3.eth.getAccounts();
+			const index = document.getElementById('cancelTransferIndex').value;
+			await contract.methods.cancelScheduledTransfer(index).send({ from: accounts[0] });
+		};
+
+		// Execute Scheduled Transfer
+		document.getElementById('executeTransfer').onclick = async () => {
+			try {
+				const accounts = await web3.eth.getAccounts();
+				const index = document.getElementById('executeTransferIndex').value;
+				await contract.methods.executeScheduledTransfer(index).send({ from: accounts[0] });
+				alert("Transfer executed successfully!");
+			} catch (error) {
+				console.error("Error executing transfer:", error);
+				alert("Error executing transfer. Check console for details.");
+			}
+		};
+
+		// Deposit
+		document.getElementById('deposit').onclick = async () => {
+			const accounts = await web3.eth.getAccounts();
+			const receiver = document.getElementById('depositReceiver').value;
+			const amount = document.getElementById('depositAmount').value;
+			await contract.methods.deposit(receiver).send({ from: accounts[0], value: web3.utils.toWei(amount, "ether") });
+		};
+
+		// Get Total Transaction Amount
+		document.getElementById('getTotalTransactionAmount').onclick = async () => {
+			const sender = document.getElementById('senderAddress').value;
+			const receiver = document.getElementById('receiverAddress').value;
+			const totalAmount = await contract.methods.getTotalTransactionAmount(sender, receiver).call();
+			document.getElementById('totalTransactionAmount').innerText = `Total Transaction Amount: ${web3.utils.fromWei(totalAmount, "ether")} Ether`;
+		};
+
+
+		document.getElementById('getTransferDetails').onclick = async () => {
+			const user = document.getElementById('transferUser').value;
+			const index = document.getElementById('transferIndex').value;
+			try {
+				const details = await contract.methods.getTransferDetails(user, index).call();
+				document.getElementById('transferDetails').innerText = `Sender: ${details[0]}, Receiver: ${details[1]}, Amount: ${web3.utils.fromWei(details[2], "ether")} Ether, Timestamp: ${new Date(details[3] * 1000).toLocaleString()}`;
+			} catch (error) {
+				console.error("Error fetching transfer details:", error);
+				document.getElementById('transferDetails').innerText = "Error fetching transfer details. Check console for more information.";
+			}
+		};
+
+		// Get Contract Balance
+		document.getElementById('getContractBalance').onclick = async () => {
+			const balance = await contract.methods.getContractBalance().call();
+			document.getElementById('contractBalance').innerText = `Contract Balance: ${web3.utils.fromWei(balance, "ether")} Ether`;
+		};
+	</script>
+</body>
+
+</html>
